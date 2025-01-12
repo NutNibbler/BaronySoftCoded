@@ -9,10 +9,7 @@
 
 #define BASE_DATA_DIR "./"
 
-#ifndef NDEBUG
-#define DEBUG_ACHIEVEMENTS
-#define DEBUG_EVENT_TIMERS
-#endif
+//#define DEBUG_ACHIEVEMENTS
 
 #ifdef BARONY_DRM_FREE
 

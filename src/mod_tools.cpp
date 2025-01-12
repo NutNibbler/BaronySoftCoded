@@ -10031,6 +10031,14 @@ void Mods::writeLevelsTxtAndPreview(std::string modFolder)
 			printlog("[PhysFS]: Failed to open %s/maps/levels.txt for writing.", path.c_str());
 		}
 
+		//std::string writeFile = modFolder + "/maps/secretrooms.txt";
+		//PHYSFS_File* physfp = PHYSFS_openWrite(writeFile.c_str());
+		//if (physfp != nullptr)
+		//{
+		//	PHYSFS_writeBytes(physfp, "2: minesecret: 100\n", 19);
+		//	PHYSFS_writeBytes(physfp, "3: minesecret: 50\n", 18);
+		//}
+
 		std::string srcImage = datadir;
 		srcImage.append("images/system/preview.png");
 		std::string dstImage = path + "/preview.png";

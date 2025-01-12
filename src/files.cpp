@@ -3078,6 +3078,7 @@ std::vector<std::string> getLinesFromDataFile(std::string filename)
 int physfsLoadMapFile(int levelToLoad, Uint32 seed, bool useRandSeed, int* checkMapHash)
 {
 	std::string mapsDirectory; // store the full file path here.
+	std::string secretRoomsDirectory; // stores the secretrooms.txt
 	std::string line = "";
 	if ( loadCustomNextMap.compare("") != 0 )
 	{
@@ -3090,6 +3091,8 @@ int physfsLoadMapFile(int levelToLoad, Uint32 seed, bool useRandSeed, int* check
 		{
 			mapsDirectory = PHYSFS_getRealDir(LEVELSFILE);
 			mapsDirectory.append(PHYSFS_getDirSeparator()).append(LEVELSFILE);
+			secretRoomsDirectory = PHYSFS_getRealDir(SECRETROOMSFILE);
+			secretRoomsDirectory.append(PHYSFS_getDirSeparator()).append(SECRETROOMSFILE);
 		}
 		else
 		{

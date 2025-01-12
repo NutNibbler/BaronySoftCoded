@@ -835,7 +835,57 @@ bool mapTileDiggable(const int x, const int y)
 	}
 	return true;
 }
+int floorNumber = 0;
+std::string secretRoomName = "";
+int secretRoomChance = 0;
 
+//Function to grab the Floor number from the secretRoomsList
+int findFloorNumber(const std::string& row, char delimiter)
+{
+	size_t pos = row.find(delimiter); // Find the delimiter position
+	if (pos != std::string::npos) {
+		return std::stoi(row.substr(0, pos)); // Convert the substring before the delimiter to an int
+	}
+}
+
+//Function to find the right Floor number from the secretRoomsList
+std::string findSecretRoom(const std::vector<std::string>& secretRooms, int currentLevel, char delimiter = ':')
+{
+	for (const auto& secretRoomData : secretRooms) {
+		try {
+			int firstValue = findFloorNumber(secretRoomData, delimiter);
+			if (firstValue == currentLevel) {
+				return secretRoomData; // Return the row if the floor numbers match
+			}
+		}
+		catch (const std::exception& e) {
+			return "0:NULL:0";
+		}
+	}
+	return "0:NULL:0"; // Return an empty string if no match is found
+}
+// int& floorNumber, std::string & secretRoomName, int& secretRoomChance,
+//Function to split the secretRoomData from the findSecretRoom function into 3 data points (int,std::String,int)
+std::tuple<int, std::string, int> splitSecretRoomData(const std::string& secretRoomData, char delimiter = ':')
+{
+	size_t firstDe = secretRoomData.find(delimiter);
+	if (firstDe == std::string::npos) {
+		throw std::runtime_error("INVALID SECRET ROOM DATA, FIRST COLON MISSING");
+	}
+
+	size_t secondDe = secretRoomData.find(delimiter, firstDe + 1);
+	if (secondDe == std::string::npos) {
+		throw std::runtime_error("INVALID SECRET ROOM DATA, SECOND COLON MISSING");
+	}
+
+	floorNumber = std::stoi(secretRoomData.substr(0, firstDe));
+
+	secretRoomName = secretRoomData.substr(firstDe + 1, secondDe - firstDe - 1);
+
+	secretRoomChance = std::stoi(secretRoomData.substr(secondDe + 1));
+
+	return { floorNumber, secretRoomName, secretRoomChance };
+}
 /*-------------------------------------------------------------------------------
 
 	generateDungeon
@@ -1012,47 +1062,39 @@ int generateDungeon(char* levelset, Uint32 seed, std::tuple<int, int, int, int> 
 		}
 	}
 
+	std::string secretRoomsDirectory; // stores the secretrooms.txt
 	// secret stuff
-	if ( !secretlevel )
+	if (!secretlevel)
 	{
-		if ( std::get<LEVELPARAM_CHANCE_SECRET>(mapParameters) != -1 )
+		secretRoomsDirectory = PHYSFS_getRealDir(SECRETROOMSFILE);
+		secretRoomsDirectory.append(PHYSFS_getDirSeparator()).append(SECRETROOMSFILE);
+		// return number between 1 - 100, then broadcast it to client
+		int rand100 = map_rng.rand() % 100 + 1;
+		std::string rand100Str = std::to_string(rand100);
+		messagePlayer(clientnum, MESSAGE_MISC, rand100Str.c_str());
+		std::vector<std::string> secretRoomList = getLinesFromDataFile(secretRoomsDirectory);
+		std::string matchingRow = findSecretRoom(secretRoomList, currentlevel);
+		messagePlayer(clientnum, MESSAGE_MISC, matchingRow.c_str());
+		auto [floorNumber, secretRoomName, secretRoomChance] = splitSecretRoomData(matchingRow);
+		if (std::get<LEVELPARAM_CHANCE_SECRET>(mapParameters) != -1)
 		{
-			if ( map_rng.rand() % 100 < std::get<LEVELPARAM_CHANCE_SECRET>(mapParameters) )
+			if (map_rng.rand() % 100 < std::get<LEVELPARAM_CHANCE_SECRET>(mapParameters))
 			{
-				secretlevelexit = 7;
+				secretlevelexit = 1;
 			}
 			else
 			{
 				secretlevelexit = 0;
 			}
 		}
-		else if ( (currentlevel == 3 && map_rng.rand() % 2) || currentlevel == 2 )
-		{
-			secretlevelexit = 1;
+		//Chance to determine if a Secret Room must spawn, chances of each room are in ./maps/secretrooms.txt
+		else if (rand100 <= secretRoomChance) {
+			secretlevelexit = floorNumber;
 		}
-		else if ( currentlevel == 7 || currentlevel == 8 )
-		{
-			secretlevelexit = 2;
+		else {
+			secretlevelexit = 0;
 		}
-		else if ( currentlevel == 11 || currentlevel == 13 )
-		{
-			secretlevelexit = 3;
-		}
-		else if ( currentlevel == 16 || currentlevel == 18 )
-		{
-			secretlevelexit = 4;
-		}
-		else if ( currentlevel == 28 )
-		{
-			secretlevelexit = 5;
-		}
-		else if ( currentlevel == 33 )
-		{
-			secretlevelexit = 6;
-		}
-		else if ( currentlevel == 23 )
-		{
-			secretlevelexit = 8;
+		if (currentlevel == 23) {
 			minotaurlevel = false;
 		}
 	}
@@ -1677,36 +1719,7 @@ int generateDungeon(char* levelset, Uint32 seed, std::tuple<int, int, int, int> 
 				secretlevelmap.creatures->last = nullptr;
 				secretlevelmap.worldUI = nullptr;
 				char secretmapname[128];
-				switch ( secretlevelexit )
-				{
-					case 1:
-						strcpy(secretmapname, "minesecret");
-						break;
-					case 2:
-						strcpy(secretmapname, "swampsecret");
-						break;
-					case 3:
-						strcpy(secretmapname, "labyrinthsecret");
-						break;
-					case 4:
-						strcpy(secretmapname, "ruinssecret");
-						break;
-					case 5:
-						strcpy(secretmapname, "cavessecret");
-						break;
-					case 6:
-						strcpy(secretmapname, "citadelsecret");
-						break;
-					case 7:
-						strcpy(secretmapname, levelset);
-						strcat(secretmapname, "secret");
-						break;
-					case 8:
-						strcpy(secretmapname, "baphoexit");
-						break;
-					default:
-						break;
-				}
+				strcpy(secretmapname, secretRoomName.c_str());
 				fullMapPath = physfsFormatMapName(secretmapname);
 				if ( fullMapPath.empty() || loadMap(fullMapPath.c_str(), &secretlevelmap, secretlevelmap.entities, secretlevelmap.creatures, &checkMapHash) == -1 )
 				{

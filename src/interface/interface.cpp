@@ -8169,7 +8169,7 @@ void GenericGUIMenu::alchemyCombinePotions()
 				{
 					appearance = 0 + local_rng.rand() % items[POTION_SICKNESS].variations;
 				}
-				if ( local_rng.rand() % 10 > 0 )
+				if ( local_rng.rand() % 1 > 0)
 				{
 					raiseSkill = false;
 				}
@@ -8180,7 +8180,7 @@ void GenericGUIMenu::alchemyCombinePotions()
 			}
 			else if ( duplicateSucceed )
 			{
-				if ( local_rng.rand() % 10 > 0 )
+				if ( local_rng.rand() % 1 > 0)
 				{
 					raiseSkill = false;
 				}
@@ -8306,7 +8306,7 @@ void GenericGUIMenu::alchemyCombinePotions()
 				Compendium_t::Events_t::eventUpdate(gui_player, Compendium_t::CPDM_BOTTLE_FROM_BREWING, POTION_EMPTY, 1);
 				free(emptyBottle);
 			}
-			if ( raiseSkill && local_rng.rand() % 2 == 0 )
+			if ( raiseSkill && local_rng.rand() % 5 == 0 )
 			{
 				if ( multiplayer == CLIENT )
 				{

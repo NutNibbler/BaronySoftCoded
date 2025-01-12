@@ -2667,30 +2667,43 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 			{
 				int spellCastChance = 5; // 20%
 				int magicChance = 6; // 16.67%
+				int spellCostWeight = 0; // Default value for the spell cost modifier
 				int castDifficulty = stat->getProficiency(PRO_SPELLCASTING) / 20 - spell->difficulty / 20;
+				if (element->mana > 35)//If Mana cost is over 35, apply -8 to level chances(Minimum 1, or 100% level chance)
+				{
+					spellCostWeight = -8;
+				}
+				else if (element->mana > 20)//If Mana cost is over 20, apply -3 to level chances(Minimum 1, or 100% level chance)
+				{
+					spellCostWeight = -3;
+				}
+				else if (element->mana > 12)//If Mana cost is over 12, apply -1 to level chances(Minimum 1, or 100% level chance)
+				{
+					spellCostWeight = -1;
+				}
 				if ( castDifficulty <= -1 )
 				{
 					// spell was harder.
-					spellCastChance = 3; // 33%
-					magicChance = 3; // 33%
+					spellCastChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
+					magicChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
 				}
 				else if ( castDifficulty == 0 )
 				{
 					// spell was same level
-					spellCastChance = 3; // 33%
-					magicChance = 4; // 25%
+					spellCastChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
+					magicChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
 				}
 				else if ( castDifficulty == 1 )
 				{
 					// spell was easy.
-					spellCastChance = 4; // 25%
-					magicChance = 5; // 20%
+					spellCastChance = std::max((5 + spellCostWeight), 1); // Base 20% level chance
+					magicChance = std::max((5 + spellCostWeight), 1); // Base 20% level chance
 				}
 				else if ( castDifficulty > 1 )
 				{
 					// piece of cake!
-					spellCastChance = 6; // 16.67%
-					magicChance = 7; // 14.2%
+					spellCastChance = std::max((7 + spellCostWeight), 1); // Base 14.28% level chance
+					magicChance = std::max((7 + spellCostWeight), 1); // Base 14.28% level chance
 				}
 				if ( usingSpellbook && !playerCastingFromKnownSpellbook )
 				{
