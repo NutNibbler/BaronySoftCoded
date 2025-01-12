@@ -15,6 +15,7 @@ SOFT CODED SECRET ROOM SPAWNING MECHANICS, NOW LOCATED AT ./maps/secretrooms.txt
             "secretroom" = The name of the map file(lmp) that will be generated
             "100" = The chance(effectively in %) that the secret room will spawn, so 100 is a 100% of the secret room spawning.
         For now the "0:NULL:0" must exist as a fallback for cases where no secret room is configure to spawn.
+	Entries into secretrooms.txt can't have duplicate floor numbers, in all liklihood, the top-most entry will be used(not tested).
 
 
 
