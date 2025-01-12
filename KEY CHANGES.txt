@@ -15,19 +15,4 @@ SOFT CODED SECRET ROOM SPAWNING MECHANICS, NOW LOCATED AT ./maps/secretrooms.txt
             "secretroom" = The name of the map file(lmp) that will be generated
             "100" = The chance(effectively in %) that the secret room will spawn, so 100 is a 100% of the secret room spawning.
         For now the "0:NULL:0" must exist as a fallback for cases where no secret room is configure to spawn.
-	Entries into secretrooms.txt can't have duplicate floor numbers, in all liklihood, the top-most entry will be used(not tested).
-
-
-
-				if (element->mana > 35)
-				{
-					// Did spell cost more than 35 mana?
-					spellCastChance = 1;
-					magicChance = 1;
-				}
-				else if (element->mana > 20)
-				{
-					// Did spell cost more than 20 mana?
-					spellCastChance = 2;
-					magicChance = 2;
-				}
+	Entries into secretrooms.txt can't have duplicate floor numbers, in all liklihood, the top-most entry will be used(not tested)
