@@ -3605,7 +3605,7 @@ void Entity::handleEffects(Stat* myStats)
 			vampiricHunger = 1;
 		}
 	}
-	bool processHunger = (svFlags & SV_FLAG_HUNGER) && !MFLAG_DISABLEHUNGER; // check server flags if hunger is enabled.
+	bool processHunger = (svFlags & SV_FLAG_HUNGER) && (!MFLAG_DISABLEHUNGER && !gameplayCustomManager.hungerDisabledOnFloor); // check server flags if hunger is enabled.  && !gameplayCustomManager.hungerDisabledOnFloor
 	if ( player >= 0 )
 	{
 		if ( myStats->type == SKELETON || myStats->type == AUTOMATON )
@@ -9045,14 +9045,14 @@ void Entity::attack(int pose, int charge, Entity* target)
 								{
 									if ( hitstats->type == BAT_SMALL && previousMonsterSpecialState == BAT_REST )
 									{
-										if ( local_rng.rand() % 10 == 0 )
+										if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.stealthFactor) )
 										{
 											this->increaseSkill(PRO_STEALTH);
 										}
 									}
 									else
 									{
-										if ( local_rng.rand() % 4 > 0 )
+										if ( local_rng.rand() % 1000 < (750 * gameplayCustomManager.stealthFactor) )
 										{
 											this->increaseSkill(PRO_STEALTH);
 										}
@@ -9065,7 +9065,7 @@ void Entity::attack(int pose, int charge, Entity* target)
 								// 1 in 2 chance to flank defenses.
 								flanking = true;
 								damage += (stats[player]->getModifiedProficiency(PRO_STEALTH) / 20 + 1) * (stealthCapstoneBonus);
-								if ( local_rng.rand() % 20 == 0 && hit.entity->behavior != &actPlayer )
+								if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.stealthFactor) && hit.entity->behavior != &actPlayer)
 								{
 									this->increaseSkill(PRO_STEALTH);
 								}
@@ -9209,6 +9209,34 @@ void Entity::attack(int pose, int charge, Entity* target)
 					bool skillIncreased = false;
 					// skill increase
 					// can raise skills up to skill level 20 on dummybots...
+					double activeFactor = 1.0;
+					switch (weaponskill)
+					{
+					case PRO_SWORD:
+						//printlog("Weapon skill is currently for Swords");
+						activeFactor = gameplayCustomManager.swordsFactor;
+						break;
+					case PRO_AXE:
+						//printlog("Weapon skill is currently for Axes");
+						activeFactor = gameplayCustomManager.axesFactor;
+						break;
+					case PRO_MACE:
+						//printlog("Weapon skill is currently for Maces");
+						activeFactor = gameplayCustomManager.macesFactor;
+						break;
+					case PRO_RANGED:
+						//printlog("Weapon skill is currently for Ranged");
+						activeFactor = gameplayCustomManager.rangedFactor;
+						break;
+					case PRO_POLEARM:
+						//printlog("Weapon skill is currently for Polearms");
+						activeFactor = gameplayCustomManager.polearmsFactor;
+						break;
+					case PRO_UNARMED:
+						//printlog("Weapon skill is currently for Unarmed");
+						activeFactor = gameplayCustomManager.unarmedFactor;
+						break;
+					}
 					bool doSkillIncrease = true;
 					if ( monsterIsImmobileTurret(hit.entity, hitstats) )
 					{
@@ -9232,17 +9260,16 @@ void Entity::attack(int pose, int charge, Entity* target)
 							(myStats->weapon->type == CRYSTAL_BATTLEAXE
 								|| myStats->weapon->type == CRYSTAL_MACE
 								|| myStats->weapon->type == CRYSTAL_SWORD
-								|| myStats->weapon->type == CRYSTAL_SPEAR) )
+								|| myStats->weapon->type == CRYSTAL_SPEAR) ) //Level chance for hitting NOT KILLING entities with Crystal weapons?
 						{
-							int chance = 6;
+							int chance = 166;
 							bool notify = true;
 							if ( myStats->type == GOBLIN )
 							{
-								chance = 10;
+								chance = 100;
 								notify = true;
 							}
-
-							if ( local_rng.rand() % chance == 0 )
+							if ( local_rng.rand() % 1000 < (chance * activeFactor))
 							{
 								if ( hitstats->type != DUMMYBOT || (hitstats->type == DUMMYBOT && myStats->getProficiency(weaponskill) < SKILL_LEVEL_BASIC) )
 								{
@@ -9251,7 +9278,7 @@ void Entity::attack(int pose, int charge, Entity* target)
 								}
 							}
 						}
-						else if ( hitstats->HP <= 0 )
+						else if ( hitstats->HP <= 0 ) //Level chance if entity is killed on hit?
 						{
 							if ( player >= 0 && weaponskill == PRO_UNARMED 
 								&& stats[player]->type == GOATMAN
@@ -9259,29 +9286,32 @@ void Entity::attack(int pose, int charge, Entity* target)
 							{
 								steamStatisticUpdateClient(player, STEAM_STAT_BARFIGHT_CHAMP, STEAM_STAT_INT, 1);
 							}
-							int chance = 8;
+							int chance = 125;
 							bool notify = true;
 							if ( myStats->type == GOBLIN )
 							{
-								chance = 12;
+								chance = 83;
 								notify = true;
 							}
-							if ( local_rng.rand() % chance == 0 )
+							int activeChance = chance * activeFactor;
+							if ( local_rng.rand() % 1000 < (chance * activeFactor))
 							{
 								this->increaseSkill(weaponskill, notify);
 								skillIncreased = true;
 							}
 						}
-						else
+						else //Level chance in other cases, presumeably for hitting entities and not killing, and also not a crystal weapon
 						{
-							int chance = 10;
+							int chance = 100;
 							bool notify = true;
 							if ( myStats->type == GOBLIN && weaponskill != PRO_RANGED )
 							{
-								chance = 14;
+								chance = 71;
 								notify = true;
 							}
-							if ( local_rng.rand() % chance == 0 )
+							int activeChance = chance * activeFactor;
+							//printlog(std::to_string(activeChance).c_str());
+							if ( local_rng.rand() % 1000 < (chance * activeFactor))
 							{
 								if ( hitstats->type != DUMMYBOT || (hitstats->type == DUMMYBOT && myStats->getProficiency(weaponskill) < SKILL_LEVEL_BASIC) )
 								{
@@ -9614,23 +9644,23 @@ void Entity::attack(int pose, int charge, Entity* target)
 							if ( itemCategory(hitstats->shield) == ARMOR
 								|| (hitstats->defending) )
 							{
-								int roll = 20;
+								int roll = 50; //Modified from 20 to 50, because now higher number is better chance
 								int hitskill = hitstats->getProficiency(PRO_SHIELD) / 20;
-								roll += hitskill * 5;
+								roll -= hitskill * 12; // Changed from + to -, because now higher number is better chance
 								if ( damage == 0 )
 								{
-									roll /= 2;
+									roll *= 2; //Changed from / to *, because now higher number is better chance
 								}
 								if ( myStats->type == BAT_SMALL )
 								{
 									if ( hitstats->getProficiency(PRO_SHIELD) >= SKILL_LEVEL_BASIC )
 									{
-										roll *= 4;
+										roll /= 4; //Changed from * to / because now higher number is better chance
 									}
 								}
 								if ( roll > 0 )
 								{
-									bool success = (local_rng.rand() % roll == 0);
+									bool success = (local_rng.rand() % 1000 < (roll * gameplayCustomManager.shieldsFactor)); //New RNG system based on an increasing value, multiplied by a factor, higher value is higher odds
 									if ( !success && playerhit >= 0 && hitstats->defending )
 									{
   										if ( players[playerhit]->mechanics.defendTicks != 0 )
@@ -9638,7 +9668,7 @@ void Entity::attack(int pose, int charge, Entity* target)
 											if ( (::ticks - players[playerhit]->mechanics.defendTicks) < (TICKS_PER_SECOND / 3) )
 											{
 												// perfect block timing, roll again
-												success = (local_rng.rand() % roll == 0);
+												success = (local_rng.rand() % 1000 < (roll * gameplayCustomManager.shieldsFactor));
 											}
 										}
 									}
@@ -10449,7 +10479,7 @@ void Entity::attack(int pose, int charge, Entity* target)
 						if ( !oldRhythmStatus && achievementStatusRhythmOfTheKnight[player] )
 						{
 							//messagePlayer(0, MESSAGE_DEBUG, "rhythm roll on atk");
-							if ( local_rng.rand() % 10 < 8 )
+							if ( local_rng.rand() % 1000 < (800 * gameplayCustomManager.shieldsFactor) )
 							{
 								bool increaseSkill = true;
 								if ( this->behavior == &actPlayer )
@@ -11130,7 +11160,7 @@ void Entity::attack(int pose, int charge, Entity* target)
 								if ( !shieldIncreased )
 								{
 									//messagePlayer(0, MESSAGE_DEBUG, "rhythm roll on hit");
-									if ( local_rng.rand() % 10 < 8 )
+									if ( local_rng.rand() % 1000 < (800 * gameplayCustomManager.shieldsFactor) )
 									{
 										bool skillIncrease = true;
 										if ( hit.entity->behavior == &actPlayer )
@@ -13302,7 +13332,7 @@ void Entity::awardXP(Entity* src, bool share, bool root)
 			if ( guerillaRadio )
 			{
 				steamStatisticUpdateClient(player, STEAM_STAT_GUERILLA_RADIO, STEAM_STAT_INT, 1);
-				if ( local_rng.rand() % 5 == 0 || (uidToEntity(src->monsterTarget) != this && local_rng.rand() % 3 == 0) )
+				if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor) || (uidToEntity(src->monsterTarget) != this && local_rng.rand() % 1000 < (333 * gameplayCustomManager.tinkeringFactor)))
 				{
 					this->increaseSkill(PRO_LOCKPICKING);
 				}
@@ -13449,7 +13479,7 @@ void Entity::awardXP(Entity* src, bool share, bool root)
 		{
 			if ( this->monsterIsTinkeringCreation() )
 			{
-				if ( local_rng.rand() % 10 == 0 )
+				if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor) )
 				{
 					leader->increaseSkill(PRO_LOCKPICKING);
 				}

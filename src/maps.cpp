@@ -842,9 +842,9 @@ int secretRoomChance = 0;
 //Function to grab the Floor number from the secretRoomsList
 int findFloorNumber(const std::string& row, char delimiter)
 {
-	size_t pos = row.find(delimiter); // Find the delimiter position
+	size_t pos = row.find(delimiter); // Find the delimiter position, ":"
 	if (pos != std::string::npos) {
-		return std::stoi(row.substr(0, pos)); // Convert the substring before the delimiter to an int
+		return std::stoi(row.substr(0, pos)); // Convert the floor number to an int
 	}
 }
 
@@ -859,12 +859,12 @@ std::string findSecretRoom(const std::vector<std::string>& secretRooms, int curr
 			}
 		}
 		catch (const std::exception& e) {
-			return "0:NULL:0";
+			return "0:NULL:0"; // Send NULL data if there is an error, not generating any secret rooms
 		}
 	}
-	return "0:NULL:0"; // Return an empty string if no match is found
+	return "0:NULL:0"; // Return NULL data if no match is found, not generating a secret room
 }
-// int& floorNumber, std::string & secretRoomName, int& secretRoomChance,
+
 //Function to split the secretRoomData from the findSecretRoom function into 3 data points (int,std::String,int)
 std::tuple<int, std::string, int> splitSecretRoomData(const std::string& secretRoomData, char delimiter = ':')
 {
@@ -878,11 +878,11 @@ std::tuple<int, std::string, int> splitSecretRoomData(const std::string& secretR
 		throw std::runtime_error("INVALID SECRET ROOM DATA, SECOND COLON MISSING");
 	}
 
-	floorNumber = std::stoi(secretRoomData.substr(0, firstDe));
+	floorNumber = std::stoi(secretRoomData.substr(0, firstDe)); //First data point will be floor number
 
-	secretRoomName = secretRoomData.substr(firstDe + 1, secondDe - firstDe - 1);
+	secretRoomName = secretRoomData.substr(firstDe + 1, secondDe - firstDe - 1); //Second data point will be the secret room file name
 
-	secretRoomChance = std::stoi(secretRoomData.substr(secondDe + 1));
+	secretRoomChance = std::stoi(secretRoomData.substr(secondDe + 1)); //Third data point will be the chance of the room generating, number translates directly to percent chance of success
 
 	return { floorNumber, secretRoomName, secretRoomChance };
 }
@@ -1070,11 +1070,11 @@ int generateDungeon(char* levelset, Uint32 seed, std::tuple<int, int, int, int> 
 		secretRoomsDirectory.append(PHYSFS_getDirSeparator()).append(SECRETROOMSFILE);
 		// return number between 1 - 100, then broadcast it to client
 		int rand100 = map_rng.rand() % 100 + 1;
-		std::string rand100Str = std::to_string(rand100);
-		messagePlayer(clientnum, MESSAGE_MISC, rand100Str.c_str());
+		//std::string rand100Str = std::to_string(rand100);
+		//messagePlayer(clientnum, MESSAGE_MISC, rand100Str.c_str());
 		std::vector<std::string> secretRoomList = getLinesFromDataFile(secretRoomsDirectory);
 		std::string matchingRow = findSecretRoom(secretRoomList, currentlevel);
-		messagePlayer(clientnum, MESSAGE_MISC, matchingRow.c_str());
+		//messagePlayer(clientnum, MESSAGE_MISC, matchingRow.c_str());
 		auto [floorNumber, secretRoomName, secretRoomChance] = splitSecretRoomData(matchingRow);
 		if (std::get<LEVELPARAM_CHANCE_SECRET>(mapParameters) != -1)
 		{
@@ -2776,29 +2776,61 @@ int generateDungeon(char* levelset, Uint32 seed, std::tuple<int, int, int, int> 
 		bool verticalSpelltraps = false;
 	} customTraps;
 
-	if ( gameplayCustomManager.inUse() && gameplayCustomManager.mapGenerationExistsForMapName(map.name) )
+	std::string floorNumStr = std::to_string(currentlevel); //Generate the floor number as a string
+
+	if ( gameplayCustomManager.inUse() && gameplayCustomManager.mapGenerationExistsForMapName(map.name) || gameplayCustomManager.mapGenerationExistsForFloorNum(floorNumStr))
 	{
-		auto m = gameplayCustomManager.getMapGenerationForMapName(map.name);
-		if ( m && m->usingTrapTypes )
+		if (gameplayCustomManager.vanillaGameplay)
 		{
-			customTrapsForMapInUse = true;
-			for ( auto& traps : m->trapTypes )
+			auto m = gameplayCustomManager.getMapGenerationForMapName(map.name);
+			if (m && m->usingTrapTypes)
 			{
-				if ( traps.compare("boulders") == 0 )
+				customTrapsForMapInUse = true;
+				for (auto& traps : m->trapTypes)
 				{
-					customTraps.boulders = true;
+					if (traps.compare("boulders") == 0)
+					{
+						customTraps.boulders = true;
+					}
+					else if (traps.compare("arrows") == 0)
+					{
+						customTraps.arrows = true;
+					}
+					else if (traps.compare("spikes") == 0)
+					{
+						customTraps.spikes = true;
+					}
+					else if (traps.compare("spelltrap_vertical") == 0)
+					{
+						customTraps.verticalSpelltraps = true;
+					}
 				}
-				else if ( traps.compare("arrows") == 0 )
+			}
+		}
+		else
+		{
+			auto m = gameplayCustomManager.getMapGenerationForFloorNum(floorNumStr); //New check for the alternative gameplaymodifiers.json format
+			if (m && m->usingTrapTypes)
+			{
+				customTrapsForMapInUse = true;
+				for (auto& traps : m->trapTypes)
 				{
-					customTraps.arrows = true;
-				}
-				else if ( traps.compare("spikes") == 0 )
-				{
-					customTraps.spikes = true;
-				}
-				else if ( traps.compare("spelltrap_vertical") == 0 )
-				{
-					customTraps.verticalSpelltraps = true;
+					if (traps.compare("boulders") == 0)
+					{
+						customTraps.boulders = true;
+					}
+					else if (traps.compare("arrows") == 0)
+					{
+						customTraps.arrows = true;
+					}
+					else if (traps.compare("spikes") == 0)
+					{
+						customTraps.spikes = true;
+					}
+					else if (traps.compare("spelltrap_vertical") == 0)
+					{
+						customTraps.verticalSpelltraps = true;
+					}
 				}
 			}
 		}

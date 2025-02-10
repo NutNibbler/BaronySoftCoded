@@ -8169,7 +8169,7 @@ void GenericGUIMenu::alchemyCombinePotions()
 				{
 					appearance = 0 + local_rng.rand() % items[POTION_SICKNESS].variations;
 				}
-				if ( local_rng.rand() % 1 > 0)
+				if ( local_rng.rand() % 1000 >= (100 * gameplayCustomManager.alchemyFactor))
 				{
 					raiseSkill = false;
 				}
@@ -8180,7 +8180,7 @@ void GenericGUIMenu::alchemyCombinePotions()
 			}
 			else if ( duplicateSucceed )
 			{
-				if ( local_rng.rand() % 1 > 0)
+				if ( local_rng.rand() % 1000 >= (100 * gameplayCustomManager.alchemyFactor))
 				{
 					raiseSkill = false;
 				}
@@ -8306,7 +8306,7 @@ void GenericGUIMenu::alchemyCombinePotions()
 				Compendium_t::Events_t::eventUpdate(gui_player, Compendium_t::CPDM_BOTTLE_FROM_BREWING, POTION_EMPTY, 1);
 				free(emptyBottle);
 			}
-			if ( raiseSkill && local_rng.rand() % 5 == 0 )
+			if ( raiseSkill && local_rng.rand() % 1000 < (500 * gameplayCustomManager.alchemyFactor) )
 			{
 				if ( multiplayer == CLIENT )
 				{
@@ -8410,7 +8410,7 @@ bool GenericGUIMenu::alchemyLearnRecipe(int type, bool increaseskill, bool notif
 			{
 				// store the potion index into here for game saves, just in case we don't have it set the element in anyway.
 				gameStatistics[STATISTICS_ALCHEMY_RECIPES] |= (1 << index); 
-				if ( increaseskill && local_rng.rand() % 6 == 0 )
+				if (increaseskill && local_rng.rand() % 1000 < (166 * gameplayCustomManager.alchemyFactor))
 				{
 					if ( multiplayer == CLIENT )
 					{
@@ -8707,7 +8707,9 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 
 	// add checks/consuming of items here.
 	int metal = 0;
+	int baseMetal = 0;
 	int magic = 0;
+	int baseMagic = 0;
 	tinkeringGetItemValue(item, &metal, &magic);
 	bool didCraft = false;
 	int skillLVL = 0;
@@ -8780,10 +8782,12 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 	}
 	if ( metal > 0 )
 	{
+		baseMetal = metal; //Save the original metal scrap value for udpated level up check
 		metal += bonusMetalScrap;
 	}
 	if ( magic > 0 )
 	{
+		baseMagic = magic; //Save the original magic scrap value for updated level up check
 		magic += bonusMagicScrap;
 	}
 	if ( metal > 0 )
@@ -8874,31 +8878,33 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 	bool increaseSkill = false;
 	if ( stats[player] && didCraft )
 	{
-		if ( metal >= 4 || magic >= 4 )
+		if ( baseMetal >= 4 || baseMagic >= 4 )
 		{
-			if ( local_rng.rand() % 2 == 0 ) // 50%
+			int magicMagnifier = std::max(0, (baseMagic - 4) * 40); //New bonus level chance when scrapping items with high magic scrap content. Each magic scrap after 4 adds 4%(40) chance to base level chance
+			int metalMagnifier = std::max(0, (baseMetal - 4) * 10); //New bonus level chance when scrapping items with high metal scrap content. Each metal scrap after 4 adds 1%(10) chance to base level chance
+			if (local_rng.rand() % 1000 < ((500 + magicMagnifier + metalMagnifier) * gameplayCustomManager.tinkeringFactor)) // 50% + magnifier bonuses, then multiplied by level factor
 			{
-				if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_EXPERT )
+				if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_MASTER )
 				{
 					increaseSkill = true;
 				}
-				else if ( local_rng.rand() % 20 == 0 && !tinkeringBulkSalvage )
+				else if ( local_rng.rand() % 10 == 0 && !tinkeringBulkSalvage )
 				{
-					messagePlayer(player, MESSAGE_MISC, Language::get(3666)); // nothing left to learn from salvaging.
+					messagePlayer(player, MESSAGE_MISC, Language::get(3672)); // nothing left to learn from salvaging complex items.
 				}
 			}
 		}
-		else if ( metal >= 2 || magic >= 2 )
+		else if ( baseMetal >= 2 || baseMagic >= 2 )
 		{
-			if ( local_rng.rand() % 5 == 0 ) // 20%
+			if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor)) // 20% then multiplied by level factor
 			{
 				if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_EXPERT )
 				{
 					increaseSkill = true;
 				}
-				else if ( local_rng.rand() % 20 == 0 && !tinkeringBulkSalvage )
+				else if ( local_rng.rand() % 10 == 0 && !tinkeringBulkSalvage )
 				{
-					messagePlayer(player, MESSAGE_MISC, Language::get(3666)); // nothing left to learn from salvaging.
+					messagePlayer(player, MESSAGE_MISC, Language::get(3666)); // nothing left to learn from salvaging simple items.
 				}
 			}
 		}
@@ -9120,7 +9126,9 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 		{
 			if ( metal > 4 || magic > 4 )
 			{
-				if ( local_rng.rand() % 10 == 0 )
+				int magicMagnifier = std::max(0, (magic - 4) * 30); //New bonus level chance when crafting items with high magic scrap cost. Each magic scrap after 4 adds 3%(30) chance to base level chance
+				int metalMagnifier = std::max(0, (metal - 4) * 5); //New bonus level chance when crafting items with high metal scrap cost. Each metal scrap after 4 adds 0.5%(5) chance to base level chance
+				if (local_rng.rand() % 1000 < ((100 + magicMagnifier + metalMagnifier) * gameplayCustomManager.tinkeringFactor))
 				{
 					increaseSkill = true;
 				}
@@ -9129,7 +9137,7 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 			{
 				if ( metal > 2 || magic > 2 )
 				{
-					if ( local_rng.rand() % 20 == 0 )
+					if (local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor))
 					{
 						increaseSkill = true;
 					}
@@ -9138,12 +9146,12 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 				{
 					if ( stats[gui_player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_BASIC )
 					{
-						if ( local_rng.rand() % 10 == 0 )
+						if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor))
 						{
 							increaseSkill = true;
 						}
 					}
-					else if ( local_rng.rand() % 20 == 0 )
+					else if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor))
 					{
 						messagePlayer(gui_player, MESSAGE_MISC, Language::get(3667), items[item->type].getIdentifiedName());
 					}
@@ -10945,7 +10953,7 @@ bool GenericGUIMenu::scribingWriteItem(Item* item)
 		bool increaseSkill = false;
 		if ( stats[gui_player] )
 		{
-			if ( local_rng.rand() % 5 == 0 )
+			if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.magicFactor) )
 			{
 				increaseSkill = true;
 			}
@@ -11036,7 +11044,7 @@ bool GenericGUIMenu::scribingWriteItem(Item* item)
 		bool increaseSkill = false;
 		if ( stats[gui_player] )
 		{
-			if ( local_rng.rand() % 10 == 0 )
+			if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.magicFactor) )
 			{
 				increaseSkill = true;
 			}

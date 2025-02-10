@@ -4771,7 +4771,7 @@ void actMonster(Entity* my)
 										lineTrace(my, my->x, my->y, tangent, monsterVisionRange, 0, false);
 									}
 									if ( hit.entity == entity )
-										if ( local_rng.rand() % 100 == 0 )
+										if ( local_rng.rand() % 1000 < (10 * gameplayCustomManager.stealthFactor) )
 										{
 											entity->increaseSkill(PRO_STEALTH);
 										}
@@ -5485,7 +5485,7 @@ void actMonster(Entity* my)
 							}
 							if ( hit.entity == entity )
 							{	
-								if ( local_rng.rand() % 100 == 0 )
+								if ( local_rng.rand() % 1000 < (10 * gameplayCustomManager.stealthFactor) )
 								{
 									entity->increaseSkill(PRO_STEALTH);
 								}
@@ -6461,7 +6461,7 @@ timeToGoAgain:
 									}
 									if ( hit.entity == entity )
 									{
-										if ( local_rng.rand() % 100 == 0 )
+										if ( local_rng.rand() % 1000 < (10 * gameplayCustomManager.stealthFactor) )
 										{
 											entity->increaseSkill(PRO_STEALTH);
 										}
@@ -11733,7 +11733,7 @@ void Entity::monsterAllySendCommand(int command, int destX, int destY, Uint32 ui
 					serverUpdateEntitySkill(this, 49);
 					messagePlayerMonsterEvent(monsterAllyIndex, 0xFFFFFF, *myStats, Language::get(398), Language::get(397), MSG_COMBAT);
 					if ( players[monsterAllyIndex] && players[monsterAllyIndex]->entity 
-						&& myStats->HP < myStats->MAXHP && local_rng.rand() % 3 == 0 )
+						&& myStats->HP < myStats->MAXHP && local_rng.rand() % 1000 < (333 * gameplayCustomManager.leadershipFactor) )
 					{
 						players[monsterAllyIndex]->entity->increaseSkill(PRO_LEADERSHIP);
 					}
@@ -12675,7 +12675,7 @@ bool Entity::monsterConsumeFoodEntity(Entity* food, Stat* myStats)
 	}
 	this->modHP(heal);
 
-	if ( !puking && leader && local_rng.rand() % 2 == 0 )
+	if ( !puking && leader && local_rng.rand() % 1000 < (500 * gameplayCustomManager.leadershipFactor) )
 	{
 		leader->increaseSkill(PRO_LEADERSHIP);
 	}

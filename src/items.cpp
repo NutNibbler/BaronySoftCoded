@@ -2952,7 +2952,7 @@ void useItem(Item* item, const int player, Entity* usedBy, bool unequipForDroppi
 				{
 					if ( stats[player] && players[player]->entity )
 					{
-						if ( local_rng.rand() % 4 == 0 )
+						if ( local_rng.rand() % 1000 < (250 * gameplayCustomManager.appraisalFactor) )
 						{
 							if ( multiplayer == CLIENT )
 							{
@@ -5165,7 +5165,7 @@ void Item::applyLockpickToWall(const int player, const int x, const int y) const
 							sendPacketSafe(net_sock, -1, net_packet, player - 1);
 						}
 					}
-					if ( !failed && local_rng.rand() % 5 == 0 )
+					if ( !failed && local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor))
 					{
 						players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 					}

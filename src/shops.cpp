@@ -273,7 +273,7 @@ bool buyItemFromShop(const int player, Item* item, bool& bOutConsumedEntireStack
 				}
 				else
 				{
-					if ( rand() % 100 <= (std::max(10, buyValue)) ) // 10% to 100% from 1-100 gold
+					if ( rand() % 1000 <= (((std::max(10, buyValue)) * 10) * gameplayCustomManager.tradingFactor) ) // 10% to 100% from 1-100 gold
 					{
 						increaseSkill = true;
 					}

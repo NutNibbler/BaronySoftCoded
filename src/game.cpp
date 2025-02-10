@@ -6223,7 +6223,7 @@ void drawAllPlayerCameras() {
 			glBeginCamera(&camera, true, map);
 
 			// shared minimap progress
-			if ( !splitscreen/*gameplayCustomManager.inUse() && gameplayCustomManager.minimapShareProgress && !splitscreen*/ )
+			if ( (gameplayCustomManager.inUse() && gameplayCustomManager.minimapShareProgress) && !splitscreen )
 			{
 				for ( int i = 0; i < MAXPLAYERS; ++i )
 				{

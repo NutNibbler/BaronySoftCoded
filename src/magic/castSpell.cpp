@@ -2617,21 +2617,21 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 				// spellcasting increase chances.
 				if ( stat->getProficiency(PRO_SPELLCASTING) < 60 )
 				{
-					if ( local_rng.rand() % 6 == 0 ) //16.67%
+					if ( local_rng.rand() % 1000 < (166 * gameplayCustomManager.spellcastingFactor) ) //16.67%
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
 					}
 				}
 				else if ( stat->getProficiency(PRO_SPELLCASTING) < 80 )
 				{
-					if ( local_rng.rand() % 9 == 0 ) //11.11%
+					if ( local_rng.rand() % 1000 < (111 * gameplayCustomManager.spellcastingFactor) ) //11.11%
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
 					}
 				}
 				else // greater than 80
 				{
-					if ( local_rng.rand() % 12 == 0 ) //8.33%
+					if ( local_rng.rand() % 1000 < (83 * gameplayCustomManager.spellcastingFactor) ) //8.33%
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
 					}
@@ -2640,21 +2640,21 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 				// magic increase chances.
 				if ( stat->getProficiency(PRO_SPELLCASTING) < 60 )
 				{
-					if ( local_rng.rand() % 7 == 0 ) //14.2%
+					if ( local_rng.rand() % 1000 < (142 * gameplayCustomManager.magicFactor) ) //14.2%
 					{
 						caster->increaseSkill(PRO_MAGIC);
 					}
 				}
 				else if ( stat->getProficiency(PRO_SPELLCASTING) < 80 )
 				{
-					if ( local_rng.rand() % 10 == 0 ) //10.00%
+					if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.magicFactor) ) //10.00%
 					{
 						caster->increaseSkill(PRO_MAGIC);
 					}
 				}
 				else // greater than 80
 				{
-					if ( local_rng.rand() % 13 == 0 ) //7.69%
+					if ( local_rng.rand() % 1000 < (77 * gameplayCustomManager.magicFactor) ) //7.69%
 					{
 						caster->increaseSkill(PRO_MAGIC);
 					}
@@ -2665,51 +2665,54 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 		{
 			if ( stat )
 			{
-				int spellCastChance = 5; // 20%
-				int magicChance = 6; // 16.67%
+				int spellCastChance = 200; // 20%
+				int magicChance = 166; // 16.6%
 				int spellCostWeight = 0; // Default value for the spell cost modifier
 				int castDifficulty = stat->getProficiency(PRO_SPELLCASTING) / 20 - spell->difficulty / 20;
-				if (element->mana > 35)//If Mana cost is over 35, apply -8 to level chances(Minimum 1, or 100% level chance)
+				if (element->mana > 35)//If Mana cost is over 35, add 55% to base level chance(550)
 				{
-					spellCostWeight = -8;
+					spellCostWeight = 550;
 				}
-				else if (element->mana > 20)//If Mana cost is over 20, apply -3 to level chances(Minimum 1, or 100% level chance)
+				else if (element->mana > 20)//If Mana cost is over 20, add 25% to base level chance(250)
 				{
-					spellCostWeight = -3;
+					spellCostWeight = 250;
 				}
-				else if (element->mana > 12)//If Mana cost is over 12, apply -1 to level chances(Minimum 1, or 100% level chance)
+				else if (element->mana > 12)//If Mana cost is over 12, add 10% base level chance(100)
 				{
-					spellCostWeight = -1;
+					spellCostWeight = 100;
 				}
 				if ( castDifficulty <= -1 )
 				{
 					// spell was harder.
-					spellCastChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
-					magicChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
+					spellCastChance = 300; // Base 30% level chance
+					magicChance = 300; // Base 30% level chance
 				}
 				else if ( castDifficulty == 0 )
 				{
 					// spell was same level
-					spellCastChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
-					magicChance = std::max((4 + spellCostWeight), 1); // Base 25% level chance
+					spellCastChance = 250; // Base 25% level chance
+					magicChance = 250; // Base 25% level chance
 				}
 				else if ( castDifficulty == 1 )
 				{
 					// spell was easy.
-					spellCastChance = std::max((5 + spellCostWeight), 1); // Base 20% level chance
-					magicChance = std::max((5 + spellCostWeight), 1); // Base 20% level chance
+					spellCastChance = 200; // Base 20% level chance
+					magicChance = 200; // Base 20% level chance
 				}
 				else if ( castDifficulty > 1 )
 				{
 					// piece of cake!
-					spellCastChance = std::max((7 + spellCostWeight), 1); // Base 14.28% level chance
-					magicChance = std::max((7 + spellCostWeight), 1); // Base 14.28% level chance
+					spellCastChance = 143; // Base 14.28% level chance
+					magicChance = 143; // Base 14.28% level chance
 				}
 				if ( usingSpellbook && !playerCastingFromKnownSpellbook )
 				{
-					spellCastChance *= 2;
-					magicChance *= 2;
+					spellCastChance /= 2;
+					magicChance /= 2;
 				}
+				spellCastChance += spellCostWeight; // Add bonus level chance from mana cost AFTER spellbook modifier
+				magicChance += spellCostWeight;
+
 				//messagePlayer(0, "Difficulty: %d, chance 1 in %d, 1 in %d", castDifficulty, spellCastChance, magicChance);
 				if ( (!strcmp(element->element_internal_name, spellElement_light.element_internal_name) || spell->ID == SPELL_REVERT_FORM) )
 				{
@@ -2736,7 +2739,7 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 				}
 
 				bool sustainedChance = players[caster->skill[2]]->mechanics.sustainedSpellLevelChance();
-				if ( spellCastChance > 0 && (local_rng.rand() % spellCastChance == 0) )
+				if ( spellCastChance > 0 && (local_rng.rand() % 1000 < (spellCastChance * gameplayCustomManager.spellcastingFactor)) )
 				{
 					if ( sustainedSpell && caster->behavior == &actPlayer )
 					{
@@ -2754,7 +2757,7 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 				}
 
 				bool magicIncreased = false;
-				if ( magicChance > 0 && (local_rng.rand() % magicChance == 0) )
+				if ( magicChance > 0 && (local_rng.rand() % 1000 < (magicChance * gameplayCustomManager.magicFactor)) )
 				{
 					if ( sustainedSpell && caster->behavior == &actPlayer )
 					{

@@ -1511,7 +1511,7 @@ void spellEffectCharmMonster(Entity& my, spellElement_t& element, Entity* parent
 					messagePlayerColor(player, MESSAGE_COMBAT, color, Language::get(3141));
 				}
 			}
-			else if ( parent && local_rng.rand() % 100 < chance
+			else if ( parent && local_rng.rand() % 1000 < ((chance * 10) * gameplayCustomManager.leadershipFactor)
 				&& ( (hitstats->leader_uid == 0 && hit.entity->getUID() != casterStats->leader_uid)
 					|| (allowStealFollowers 
 						&& hitstats->leader_uid != parent->getUID() // my target is not already following me

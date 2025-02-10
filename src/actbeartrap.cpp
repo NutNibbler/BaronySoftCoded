@@ -236,7 +236,7 @@ void actBeartrap(Entity* my)
 								{
 									messagePlayer(player, MESSAGE_HINT, Language::get(2522));
 								}
-								if ( local_rng.rand() % 10 == 0 )
+								if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor) )
 								{
 									parent->increaseSkill(PRO_LOCKPICKING);
 								}
@@ -648,19 +648,19 @@ void bombDoEffect(Entity* my, Entity* triggered, real_t entityDistance, bool spa
 			{
 				if ( oldHP > 0 && stat->HP == 0 ) // got a kill
 				{
-					if ( local_rng.rand() % 5 == 0 )
+					if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor) )
 					{
 						parent->increaseSkill(PRO_LOCKPICKING);
 					}
 				}
 				else if ( oldHP > stat->HP )
 				{
-					if ( local_rng.rand() % 20 == 0 ) // wounded
+					if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor) ) // wounded
 					{
 						parent->increaseSkill(PRO_LOCKPICKING);
 					}
 				}
-				else if( local_rng.rand() % 20 == 0) // any other effect
+				else if( local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor)) // any other effect
 				{
 					parent->increaseSkill(PRO_LOCKPICKING);
 				}

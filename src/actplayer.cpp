@@ -5773,33 +5773,33 @@ void actPlayer(Entity* my)
 							if ( items[tempItem->type].value < 100 )
 							{
 								// easy junk items
-								appraisalEaseOfDifficulty = 2;
+								appraisalEaseOfDifficulty = 500;
 							}
 							else if ( items[tempItem->type].value < 200 )
 							{
 								// medium
-								appraisalEaseOfDifficulty = 1;
+								appraisalEaseOfDifficulty = 650;
 							}
 							else if ( items[tempItem->type].value < 300 )
 							{
 								// medium
-								appraisalEaseOfDifficulty = 0;
+								appraisalEaseOfDifficulty = 750;
 							}
 							else if ( items[tempItem->type].value < 400 )
 							{
 								// hardest
-								appraisalEaseOfDifficulty = -1;
+								appraisalEaseOfDifficulty = 1166;
 							}
 							else
 							{
 								// hardest
-								appraisalEaseOfDifficulty = -1;
+								appraisalEaseOfDifficulty = 1166;
 							}
-							appraisalEaseOfDifficulty += stats[PLAYER_NUM]->getProficiency(PRO_APPRAISAL) / 20;
+							appraisalEaseOfDifficulty -= ((stats[PLAYER_NUM]->getProficiency(PRO_APPRAISAL) / 20) * 166);
 							// difficulty ranges from 1-in-1 to 1-in-6
-							appraisalEaseOfDifficulty = std::max(appraisalEaseOfDifficulty, 1);
+							appraisalEaseOfDifficulty = std::max(appraisalEaseOfDifficulty, 166);
 							//messagePlayer(0, "Appraisal level up chance: 1 in %d", appraisalEaseOfDifficulty);
-							if ( local_rng.rand() % appraisalEaseOfDifficulty == 0 )
+							if ( local_rng.rand() % 1000 < (appraisalEaseOfDifficulty * gameplayCustomManager.appraisalFactor))
 							{
 								if ( multiplayer == CLIENT )
 								{
@@ -5818,7 +5818,7 @@ void actPlayer(Entity* my)
 								}
 							}
 						}
-						else if ( local_rng.rand() % 7 == 0 )
+						else if ( local_rng.rand() % 1000 < (143 * gameplayCustomManager.appraisalFactor) )
 						{
 							if ( multiplayer == CLIENT )
 							{
@@ -6487,7 +6487,7 @@ void actPlayer(Entity* my)
 		{
 			int x = std::min(std::max<unsigned int>(0, floor(my->x / 16)), map.width - 1);
 			int y = std::min(std::max<unsigned int>(0, floor(my->y / 16)), map.height - 1);
-			if ( local_rng.rand() % 400 == 0 && multiplayer != CLIENT )
+			if ( local_rng.rand() % 10000 < (25 * gameplayCustomManager.swimmingFactor) && multiplayer != CLIENT)
 			{
 				my->increaseSkill(PRO_SWIMMING);
 			}

@@ -1,12 +1,15 @@
 Potion Duplication and brewing Sickness potions no longer have a random RNG check to prevent level gain.
 Alchemy actions have a 1/5 chance to level up(from 1/6)
 
-Reduced base chances of leveling Magic and Casting levels
+Mana Cost Weight Leveling Change: Spells that cost more than certain thresholds will boost level chance
+If a spell costs more than 35 mana, greatly boost chances of leveling(50%)
+If a spell costs more than 20 Mana, moderately boost chances of leveling(25%)
+If a spell costs more than 12 mana, slightly boost chances of leveling(10%)
+Spell casting where spell requirement tier exceeds player's casting skill tier, now have a 30% chance of leveling(from 25%)
 
-Mana Cost Weight Leveling Change: Spells that cost more than certain thresholds will boost level chance(Max 100% chance)
-If a spell costs more than 35 mana, greatly boost chances of leveling
-If a spell costs more than 20 Mana, moderately boost chances of leveling
-If a spell costs more than 12 mana, slightly boost chances of leveling
+Code now calls for language line #3672, which is used as a different dialog between salvaging small or large items, line #3666 is still in use.
+Line #3672: "You have nothing else to learn from salvaging small items."
+Line #3666: "You have nothing else to learn from salvaging large items."
 
 SOFT CODED SECRET ROOM SPAWNING MECHANICS, NOW LOCATED AT ./maps/secretrooms.txt
     Breakdown:
@@ -16,3 +19,16 @@ SOFT CODED SECRET ROOM SPAWNING MECHANICS, NOW LOCATED AT ./maps/secretrooms.txt
             "100" = The chance(effectively in %) that the secret room will spawn, so 100 is a 100% of the secret room spawning.
         For now the "0:NULL:0" must exist as a fallback for cases where no secret room is configure to spawn.
 	Entries into secretrooms.txt can't have duplicate floor numbers, in all liklihood, the top-most entry will be used(not tested)
+    
+Changed gameplayModifiers.json file to now read floor generation data by floor number, rather than floor name. 
+    There are seperated groups within the json file for standard and secret floors, which should be titled "floors" and "secret_floors"
+ - Floor modifiers such as Dark, Minotaur, NPC, and Shop are now controlled by a true/false(bool) value, and a percent(int) chance of occuring
+ 
+Adjusted code to now check some values per floor, instead of globally applying the values.
+ - player_share_minimap_progress
+ - disable_minimap_on_floors
+ 
+Relegated Minotaur floor options to be handled by floor key
+Relegated Disable Minimap floor options to be handled by floor key
+
+REWORKED LEVELING MECHANICS TO RUN A CHECK FOR A VALUE UNDER 1000, THIS VALUE CAN BE ADJUSTED BY A DOUBLE VALUE INSIDE GAMEPLAYMODIFIERS.JSON

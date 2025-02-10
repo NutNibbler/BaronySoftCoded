@@ -2379,7 +2379,7 @@ void onScrollUseAppraisalIncrease(Item* item, int player)
 		{
 			if ( stats[player] && players[player]->entity )
 			{
-				if ( local_rng.rand() % 4 == 0 )
+				if (local_rng.rand() % 1000 < (250 * gameplayCustomManager.appraisalFactor) )
 				{
 					if ( multiplayer == CLIENT )
 					{

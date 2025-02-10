@@ -10080,6 +10080,83 @@ void Mods::writeLevelsTxtAndPreview(std::string modFolder)
 	}
 }
 
+void Mods::writeSecretRoomsTxtAndPreview(std::string modFolder)
+{
+	std::string path = outputdir;
+	path.append(PHYSFS_getDirSeparator()).append("mods/").append(modFolder);
+	if (access(path.c_str(), F_OK) == 0)
+	{
+		std::string writeFile = modFolder + "/maps/secretrooms.txt";
+		PHYSFS_File* physfp = PHYSFS_openWrite(writeFile.c_str());
+		if (physfp != nullptr)
+		{
+			PHYSFS_writeBytes(physfp, "2:minesecret:100\n", 17);
+			PHYSFS_writeBytes(physfp, "3:minesecret:50\n", 16);
+			PHYSFS_writeBytes(physfp, "7:swampsecret:100\n", 18);
+			PHYSFS_writeBytes(physfp, "8:swampsecret:100\n", 18);
+			PHYSFS_writeBytes(physfp, "11:labyrinthsecret:100\n", 23);
+			PHYSFS_writeBytes(physfp, "13:labyrinthsecret:100\n", 23);
+			PHYSFS_writeBytes(physfp, "16:ruinssecret:100\n", 19);
+			PHYSFS_writeBytes(physfp, "18:ruinssecret:100\n", 19);
+			PHYSFS_writeBytes(physfp, "23:baphoexit:100\n", 17);
+			PHYSFS_writeBytes(physfp, "28:cavessecret:100\n", 19);
+			PHYSFS_writeBytes(physfp, "33:citadelsecret:100\n", 21);
+			PHYSFS_close(physfp);
+		}
+		else
+		{
+			printlog("[PhysFS]: Failed to open %s/maps/secretrooms.txt for writing.", path.c_str());
+		}
+
+		//std::string writeFile = modFolder + "/maps/secretrooms.txt";
+		//PHYSFS_File* physfp = PHYSFS_openWrite(writeFile.c_str());
+		//if (physfp != nullptr)
+		//{
+		//	PHYSFS_writeBytes(physfp, "2: minesecret: 100\n", 19);
+		//	PHYSFS_writeBytes(physfp, "3: minesecret: 50\n", 18);
+		//}
+
+		std::string srcImage = datadir;
+		srcImage.append("images/system/preview.png");
+		std::string dstImage = path + "/preview.png";
+		if (access(srcImage.c_str(), F_OK) == 0)
+		{
+			if (File* fp_read = FileIO::open(srcImage.c_str(), "rb"))
+			{
+				if (File* fp_write = FileIO::open(dstImage.c_str(), "wb"))
+				{
+					char chunk[1024];
+					auto len = fp_read->read(chunk, sizeof(chunk[0]), sizeof(chunk));
+					while (len == sizeof(chunk))
+					{
+						fp_write->write(chunk, sizeof(chunk[0]), len);
+						len = fp_read->read(chunk, sizeof(chunk[0]), sizeof(chunk));
+					}
+					fp_write->write(chunk, sizeof(chunk[0]), len);
+					FileIO::close(fp_write);
+				}
+				else
+				{
+					printlog("[PhysFS]: Failed to write preview.png in %s", dstImage.c_str());
+				}
+				FileIO::close(fp_read);
+			}
+			else
+			{
+				printlog("[PhysFS]: Failed to open %s", srcImage.c_str());
+			}
+		}
+		else
+		{
+			printlog("[PhysFS]: Failed to access %s", srcImage.c_str());
+		}
+	}
+	else
+	{
+		printlog("[PhysFS]: Failed to write secretrooms.txt in %s", path.c_str());
+	}
+}
+
 int Mods::createBlankModDirectory(std::string foldername)
 {
 	std::string baseDir = outputdir;
@@ -10121,6 +10198,7 @@ int Mods::createBlankModDirectory(std::string foldername)
 			folder = "/maps";
 			PHYSFS_mkdir((dir + folder).c_str());
 			writeLevelsTxtAndPreview(foldername.c_str());
+			writeSecretRoomsTxtAndPreview(foldername.c_str());
 
 			folder = "/models";
 			PHYSFS_mkdir((dir + folder).c_str());

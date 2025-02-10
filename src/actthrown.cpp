@@ -934,7 +934,7 @@ void actThrown(Entity* my)
 					}
 					if ( !ignorePotion )   // this makes it impossible to bork the end boss :)
 					{
-						if ( local_rng.rand() % 4 == 0 && parent != NULL && itemCategory(item) == POTION && item->type != POTION_EMPTY )
+						if ( local_rng.rand() % 1000 < (250 * gameplayCustomManager.alchemyFactor) && parent != NULL && itemCategory(item) == POTION && item->type != POTION_EMPTY)
 						{
 							parent->increaseSkill(PRO_ALCHEMY);
 						}
@@ -1320,8 +1320,8 @@ void actThrown(Entity* my)
 					{
 						doSkillIncrease = false; // no skill for killing/hurting players
 					}
-					int chance = 5;
-					if ( doSkillIncrease && (local_rng.rand() % chance == 0) && parent && parent->getStats() )
+					int chance = 200;
+					if ( doSkillIncrease && (local_rng.rand() % 1000 < (chance * gameplayCustomManager.rangedFactor)) && parent && parent->getStats() )
 					{
 						if ( hitstats->type != DUMMYBOT 
 							|| (hitstats->type == DUMMYBOT && parent->getStats()->getProficiency(PRO_RANGED) < SKILL_LEVEL_BASIC) )

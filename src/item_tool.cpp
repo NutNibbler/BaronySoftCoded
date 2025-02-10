@@ -280,7 +280,7 @@ void Item::applyLockpick(int player, Entity& entity)
 				{
 					if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_EXPERT )
 					{
-						if ( local_rng.rand() % 10 == 0 )
+						if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor) )
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 							tryDegradeLockpick = false;
@@ -391,7 +391,7 @@ void Item::applyLockpick(int player, Entity& entity)
 				{
 					if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_SKILLED )
 					{
-						if ( local_rng.rand() % 10 == 0 )
+						if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor) )
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 							tryDegradeLockpick = false;
@@ -490,7 +490,7 @@ void Item::applyLockpick(int player, Entity& entity)
 						playSoundEntity(&entity, 76, 128);
 						messagePlayer(player, MESSAGE_COMBAT, Language::get(2527), getMonsterLocalizedName(myStats->type).c_str());
 
-						if ( local_rng.rand() % 3 == 0 )
+						if ( local_rng.rand() % 1000 < (333 * gameplayCustomManager.tinkeringFactor) )
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 						}
@@ -531,7 +531,7 @@ void Item::applyLockpick(int player, Entity& entity)
 						spawnMagicEffectParticles(entity.x, entity.y, entity.z, 170);
 						entity.monsterAcquireAttackTarget(*players[player]->entity, MONSTER_STATE_PATH, true);
 
-						if ( local_rng.rand() % 5 == 0 )
+						if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor) )
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 						}

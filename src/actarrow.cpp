@@ -628,7 +628,7 @@ void actArrow(Entity* my)
 									// unaware monster, get backstab damage.
 									int bonus = (parentStats->getModifiedProficiency(PRO_STEALTH) / 20 + 2) * (2 * stealthCapstoneBonus);
 									damage += ((bonus * equipmentModifier) * bonusModifier);
-									if ( local_rng.rand() % 10 == 0 && hit.entity->behavior != &actPlayer )
+									if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.stealthFactor) && hit.entity->behavior != &actPlayer)
 									{
 										parent->increaseSkill(PRO_STEALTH);
 									}
@@ -640,7 +640,7 @@ void actArrow(Entity* my)
 									// 1 in 2 chance to flank defenses.
 									int bonus = (parentStats->getModifiedProficiency(PRO_STEALTH) / 20 + 1) * (stealthCapstoneBonus);
 									damage += ((bonus * equipmentModifier) * bonusModifier);
-									if ( local_rng.rand() % 20 == 0 && hit.entity->behavior != &actPlayer )
+									if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.stealthFactor) && hit.entity->behavior != &actPlayer)
 									{
 										parent->increaseSkill(PRO_STEALTH);
 									}
@@ -859,8 +859,8 @@ void actArrow(Entity* my)
 						{
 							doSkillIncrease = false; // no skill for killing/hurting players
 						}
-						int chance = 10;
-						if ( doSkillIncrease && (local_rng.rand() % chance == 0) && parent && parent->getStats() )
+						int chance = 100;
+						if ( doSkillIncrease && (local_rng.rand() % 1000 < (chance * gameplayCustomManager.rangedFactor)) && parent && parent->getStats() )
 						{
 							if ( hitstats->type != DUMMYBOT 
 								|| (hitstats->type == DUMMYBOT && parent->getStats()->getProficiency(PRO_RANGED) < SKILL_LEVEL_BASIC) )
