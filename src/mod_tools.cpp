@@ -17312,9 +17312,9 @@ std::vector<Sint32> Compendium_t::CompendiumMonsters_t::Monster_t::getDisplaySta
 				statMax = hp[1];
 			}
 
-			int statIncrease = ((abs(statMin) / 20) * 20);
+			int statIncrease = ((abs(statMin) / 20 + 1) * 20);
 			statMin += statIncrease - (statIncrease / 5);
-			statIncrease = ((abs(statMax) / 20) * 20);
+			statIncrease = ((abs(statMax) / 20 + 1) * 20);
 			statMax += statIncrease;
 			retVal.push_back(statMin);
 			if ( statMax != statMin )
@@ -17338,9 +17338,9 @@ std::vector<Sint32> Compendium_t::CompendiumMonsters_t::Monster_t::getDisplaySta
 				statMax = spd[1];
 			}
 
-			int statIncrease = std::min((abs(statMin) / 4) * 1, 8);
+			int statIncrease = std::min((abs(statMin) / 4 + 1) * 1, 8);
 			statMin += statIncrease - (statIncrease / 2);
-			statIncrease = std::min((abs(statMax) / 4) * 1, 8);
+			statIncrease = std::min((abs(statMax) / 4 + 1) * 1, 8);
 			statMax += statIncrease;
 			retVal.push_back(statMin);
 			if ( statMax != statMin )
@@ -17371,9 +17371,9 @@ std::vector<Sint32> Compendium_t::CompendiumMonsters_t::Monster_t::getDisplaySta
 			}
 		}
 
-		int statIncrease = (abs(statMin) / 5) * 1;
+		int statIncrease = (abs(statMin) / 5 + 1) * 1;
 		int minIncrease = statIncrease - (statIncrease / 2);
-		statIncrease = (abs(statMax) / 5) * 1;
+		statIncrease = (abs(statMax) / 5 + 1) * 1;
 		int maxIncrease = statIncrease;
 
 		if ( ac.size() > 0 )
@@ -17417,9 +17417,9 @@ std::vector<Sint32> Compendium_t::CompendiumMonsters_t::Monster_t::getDisplaySta
 			}
 		}
 
-		int statIncrease = (abs(statMin) / 5) * 5;
+		int statIncrease = (abs(statMin) / 5 + 1) * 5;
 		int minIncrease = statIncrease - (statIncrease / 4);
-		statIncrease = (abs(statMax) / 5) * 5;
+		statIncrease = (abs(statMax) / 5 + 1) * 5;
 		int maxIncrease = statIncrease;
 
 		if ( atk.size() > 0 )
@@ -17454,9 +17454,9 @@ std::vector<Sint32> Compendium_t::CompendiumMonsters_t::Monster_t::getDisplaySta
 		{
 			Sint32 statMinDEX = stats.DEX;
 			Sint32 statMaxDEX = stats.DEX + stats.RANDOM_DEX;
-			int statIncrease = std::min((abs(statMinDEX) / 4) * 1, 8);
+			int statIncrease = std::min((abs(statMinDEX) / 4 + 1) * 1, 8);
 			int minIncrease = (statIncrease / 2);
-			statIncrease = std::min((abs(statMaxDEX) / 4) * 1, 8);
+			statIncrease = std::min((abs(statMaxDEX) / 4 + 1) * 1, 8);
 			int maxIncrease = statIncrease;
 
 			statMinIncrease += minIncrease;
@@ -17465,9 +17465,9 @@ std::vector<Sint32> Compendium_t::CompendiumMonsters_t::Monster_t::getDisplaySta
 		{
 			Sint32 statMinPER = stats.PER;
 			Sint32 statMaxPER = stats.PER + stats.RANDOM_PER;
-			int statIncrease = (abs(statMinPER) / 5) * 5;
+			int statIncrease = (abs(statMinPER) / 5 + 1) * 5;
 			int minIncrease = statIncrease - (statIncrease / 4);
-			statIncrease = (abs(statMaxPER) / 5) * 5;
+			statIncrease = (abs(statMaxPER) / 5 + 1) * 5;
 			int maxIncrease = statIncrease;
 
 			statMinIncrease += minIncrease;
