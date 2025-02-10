@@ -7,6 +7,11 @@ If a spell costs more than 20 Mana, moderately boost chances of leveling(25%)
 If a spell costs more than 12 mana, slightly boost chances of leveling(10%)
 Spell casting where spell requirement tier exceeds player's casting skill tier, now have a 30% chance of leveling(from 25%)
 
+Tinkering leveling mechanics are altered, scrapping items with generate additional level chances for each piece of scrap past 4.
+    Breakdown:
+        Each Metal Scrap past 4 increases chance to level up by 1%
+        Each Magic Scrap past 4 increases chance to level up by 4%
+
 Code now calls for language line #3672, which is used as a different dialog between salvaging small or large items, line #3666 is still in use.
 Line #3672: "You have nothing else to learn from salvaging small items."
 Line #3666: "You have nothing else to learn from salvaging large items."
@@ -17,9 +22,10 @@ SOFT CODED SECRET ROOM SPAWNING MECHANICS, NOW LOCATED AT ./maps/secretrooms.txt
             "1" = The floor the secret room is assigned to
             "secretroom" = The name of the map file(lmp) that will be generated
             "100" = The chance(effectively in %) that the secret room will spawn, so 100 is a 100% of the secret room spawning.
-        For now the "0:NULL:0" must exist as a fallback for cases where no secret room is configure to spawn.
 	Entries into secretrooms.txt can't have duplicate floor numbers, in all liklihood, the top-most entry will be used(not tested)
     
+NEW GAMEPLAYMODIFIERS.JSON FORMAT, USE COMMAND "/jsonexportgameplaymodifiers" in-game to get a sample copy of the new format.
+
 Changed gameplayModifiers.json file to now read floor generation data by floor number, rather than floor name. 
     There are seperated groups within the json file for standard and secret floors, which should be titled "floors" and "secret_floors"
  - Floor modifiers such as Dark, Minotaur, NPC, and Shop are now controlled by a true/false(bool) value, and a percent(int) chance of occuring
@@ -27,8 +33,11 @@ Changed gameplayModifiers.json file to now read floor generation data by floor n
 Adjusted code to now check some values per floor, instead of globally applying the values.
  - player_share_minimap_progress
  - disable_minimap_on_floors
- 
-Relegated Minotaur floor options to be handled by floor key
-Relegated Disable Minimap floor options to be handled by floor key
+
+Relegated Minotaur floor options to be handled PER floor key
+Relegated Disable Minimap floor options to be handled PER floor key
 
 REWORKED LEVELING MECHANICS TO RUN A CHECK FOR A VALUE UNDER 1000, THIS VALUE CAN BE ADJUSTED BY A DOUBLE VALUE INSIDE GAMEPLAYMODIFIERS.JSON
+    Breakdown:
+        Each skill in Barony levels up with a random chance whenever certain activities are done, now, the weight of the chances can be adjusted.
+        
