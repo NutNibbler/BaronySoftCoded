@@ -267,16 +267,11 @@ bool buyItemFromShop(const int player, Item* item, bool& bOutConsumedEntireStack
 			{
 				bool increaseSkill = false;
 				int buyValue = item->buyValue(player);
-				if ( buyValue >= 100 )
+				int overLevels = 0;
+				if ( rand() % 1000 <= (((std::max(10, buyValue)) * 10) * gameplayCustomManager.tradingFactor) ) // 10% to 100% from 1-100 gold
 				{
 					increaseSkill = true;
-				}
-				else
-				{
-					if ( rand() % 1000 <= (((std::max(10, buyValue)) * 10) * gameplayCustomManager.tradingFactor) ) // 10% to 100% from 1-100 gold
-					{
-						increaseSkill = true;
-					}
+					overLevels = gameplayCustomManager.processOverlevel(1000, ((std::max(10, buyValue)) * 10), gameplayCustomManager.tradingFactor, gameplayCustomManager.ovEnabled);
 				}
 
 				if ( increaseSkill )
@@ -291,6 +286,20 @@ bool buyItemFromShop(const int player, Item* item, bool& bOutConsumedEntireStack
 					else
 					{
 						players[player]->entity->increaseSkill(PRO_TRADING);
+					}
+					for (; overLevels > 0; overLevels--)
+					{
+						if (buyValue <= 1)
+						{
+							if (stats[player]->getProficiency(PRO_TRADING) < SKILL_LEVEL_SKILLED)
+							{
+								players[player]->entity->increaseSkill(PRO_TRADING);
+							}
+						}
+						else
+						{
+							players[player]->entity->increaseSkill(PRO_TRADING);
+						}
 					}
 				}
 				//if ( local_rng.rand() % 2 )

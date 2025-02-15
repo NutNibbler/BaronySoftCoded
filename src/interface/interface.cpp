@@ -8318,12 +8318,28 @@ void GenericGUIMenu::alchemyCombinePotions()
 					net_packet->address.port = net_server.port;
 					net_packet->len = 6;
 					sendPacketSafe(net_sock, -1, net_packet, 0);
+					int overLevels = gameplayCustomManager.processOverlevel(1000, 500, gameplayCustomManager.alchemyFactor, gameplayCustomManager.ovEnabled);
+					for (; overLevels > 0; overLevels--)
+					{
+						strcpy((char*)net_packet->data, "CSKL");
+						net_packet->data[4] = gui_player;
+						net_packet->data[5] = PRO_ALCHEMY;
+						net_packet->address.host = net_server.host;
+						net_packet->address.port = net_server.port;
+						net_packet->len = 6;
+						sendPacketSafe(net_sock, -1, net_packet, 0);
+					}
 				}
 				else
 				{
 					if ( players[gui_player] && players[gui_player]->entity )
 					{
 						players[gui_player]->entity->increaseSkill(PRO_ALCHEMY);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 500, gameplayCustomManager.alchemyFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							players[gui_player]->entity->increaseSkill(PRO_ALCHEMY);
+						}
 					}
 				}
 			}
@@ -8422,12 +8438,28 @@ bool GenericGUIMenu::alchemyLearnRecipe(int type, bool increaseskill, bool notif
 						net_packet->address.port = net_server.port;
 						net_packet->len = 6;
 						sendPacketSafe(net_sock, -1, net_packet, 0);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 166, gameplayCustomManager.alchemyFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							strcpy((char*)net_packet->data, "CSKL");
+							net_packet->data[4] = gui_player;
+							net_packet->data[5] = PRO_ALCHEMY;
+							net_packet->address.host = net_server.host;
+							net_packet->address.port = net_server.port;
+							net_packet->len = 6;
+							sendPacketSafe(net_sock, -1, net_packet, 0);
+						}
 					}
 					else
 					{
 						if ( players[gui_player] && players[gui_player]->entity )
 						{
 							players[gui_player]->entity->increaseSkill(PRO_ALCHEMY);
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 166, gameplayCustomManager.alchemyFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								players[gui_player]->entity->increaseSkill(PRO_ALCHEMY);
+							}
 						}
 					}
 				}
@@ -8875,6 +8907,7 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 		}
 	}
 
+	int overLevels = 0;
 	bool increaseSkill = false;
 	if ( stats[player] && didCraft )
 	{
@@ -8887,6 +8920,7 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 				if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_MASTER )
 				{
 					increaseSkill = true;
+					overLevels = gameplayCustomManager.processOverlevel(1000, (500 + magicMagnifier + metalMagnifier), gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
 				}
 				else if ( local_rng.rand() % 10 == 0 && !tinkeringBulkSalvage )
 				{
@@ -8901,6 +8935,7 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 				if ( stats[player]->getProficiency(PRO_LOCKPICKING) < SKILL_LEVEL_EXPERT )
 				{
 					increaseSkill = true;
+					overLevels = gameplayCustomManager.processOverlevel(1000, 200, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
 				}
 				else if ( local_rng.rand() % 10 == 0 && !tinkeringBulkSalvage )
 				{
@@ -8945,7 +8980,7 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 			}
 		}
 	}
-
+	
 	if ( increaseSkill )
 	{
 		if ( player != gui_player ) // server initiated craft for client.
@@ -8973,6 +9008,37 @@ bool GenericGUIMenu::tinkeringSalvageItem(Item* item, bool outsideInventory, int
 				if ( players[player] && players[player]->entity )
 				{
 					players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+				}
+			}
+		}
+		for (; overLevels > 0; overLevels--)
+		{
+			if (player != gui_player) // server initiated craft for client.
+			{
+				if (players[player] && players[player]->entity)
+				{
+					players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+				}
+			}
+			else if (players[player]->isLocalPlayer()) // client/server initiated craft for self.
+			{
+				if (multiplayer == CLIENT)
+				{
+					// request level up
+					strcpy((char*)net_packet->data, "CSKL");
+					net_packet->data[4] = player;
+					net_packet->data[5] = PRO_LOCKPICKING;
+					net_packet->address.host = net_server.host;
+					net_packet->address.port = net_server.port;
+					net_packet->len = 6;
+					sendPacketSafe(net_sock, -1, net_packet, 0);
+				}
+				else
+				{
+					if (players[player] && players[player]->entity)
+					{
+						players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+					}
 				}
 			}
 		}
@@ -9122,6 +9188,7 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 	if ( tinkeringPlayerHasMaterialsInventory(metal, magic) )
 	{
 		bool increaseSkill = false;
+		int overLevels = 0;
 		if ( stats[gui_player] )
 		{
 			if ( metal > 4 || magic > 4 )
@@ -9131,6 +9198,7 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 				if (local_rng.rand() % 1000 < ((100 + magicMagnifier + metalMagnifier) * gameplayCustomManager.tinkeringFactor))
 				{
 					increaseSkill = true;
+					overLevels = gameplayCustomManager.processOverlevel(1000, (100 + magicMagnifier + metalMagnifier), gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
 				}
 			}
 			else
@@ -9140,6 +9208,7 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 					if (local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor))
 					{
 						increaseSkill = true;
+						overLevels = gameplayCustomManager.processOverlevel(1000, 50, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
 					}
 				}
 				else
@@ -9149,11 +9218,13 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 						if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor))
 						{
 							increaseSkill = true;
+							overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
 						}
 					}
-					else if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor))
+					else if ( local_rng.rand() % 1000 < 50)
 					{
 						messagePlayer(gui_player, MESSAGE_MISC, Language::get(3667), items[item->type].getIdentifiedName());
+
 					}
 				}
 			}
@@ -9177,6 +9248,28 @@ Item* GenericGUIMenu::tinkeringCraftItemAndConsumeMaterials(const Item* item)
 				if ( players[gui_player] && players[gui_player]->entity )
 				{
 					players[gui_player]->entity->increaseSkill(PRO_LOCKPICKING);
+				}
+			}
+			printlog(std::to_string(overLevels).c_str());
+			for (; overLevels > 0; overLevels--)
+			{
+				if (multiplayer == CLIENT)
+				{
+					// request level up
+					strcpy((char*)net_packet->data, "CSKL");
+					net_packet->data[4] = gui_player;
+					net_packet->data[5] = PRO_LOCKPICKING;
+					net_packet->address.host = net_server.host;
+					net_packet->address.port = net_server.port;
+					net_packet->len = 6;
+					sendPacketSafe(net_sock, -1, net_packet, 0);
+				}
+				else
+				{
+					if (players[gui_player] && players[gui_player]->entity)
+					{
+						players[gui_player]->entity->increaseSkill(PRO_LOCKPICKING);
+					}
 				}
 			}
 		}
@@ -10586,6 +10679,7 @@ int GenericGUIMenu::tinkeringUpgradeMaxStatus(Item* item)
 
 bool GenericGUIMenu::tinkeringConsumeMaterialsForRepair(Item* item, bool upgradingItem)
 {
+	int overLevels = 0;
 	if ( !item )
 	{
 		return false;
@@ -10604,16 +10698,19 @@ bool GenericGUIMenu::tinkeringConsumeMaterialsForRepair(Item* item, bool upgradi
 		{
 			if ( !upgradingItem )
 			{
-				if ( local_rng.rand() % 40 == 0 )
+				if ( local_rng.rand() % 1000 < (25 * gameplayCustomManager.tinkeringFactor))
 				{
 					increaseSkill = true;
+					overLevels = gameplayCustomManager.processOverlevel(1000, 25, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+					
 				}
 			}
 			else
 			{
-				if ( local_rng.rand() % 10 == 0 )
+				if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor))
 				{
 					increaseSkill = true;
+					overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
 				}
 			}
 		}
@@ -10636,6 +10733,27 @@ bool GenericGUIMenu::tinkeringConsumeMaterialsForRepair(Item* item, bool upgradi
 				if ( players[gui_player] && players[gui_player]->entity )
 				{
 					players[gui_player]->entity->increaseSkill(PRO_LOCKPICKING);
+				}
+			}
+			for (; overLevels > 0; overLevels--)
+			{
+				if (multiplayer == CLIENT)
+				{
+					// request level up
+					strcpy((char*)net_packet->data, "CSKL");
+					net_packet->data[4] = gui_player;
+					net_packet->data[5] = PRO_LOCKPICKING;
+					net_packet->address.host = net_server.host;
+					net_packet->address.port = net_server.port;
+					net_packet->len = 6;
+					sendPacketSafe(net_sock, -1, net_packet, 0);
+				}
+				else
+				{
+					if (players[gui_player] && players[gui_player]->entity)
+					{
+						players[gui_player]->entity->increaseSkill(PRO_LOCKPICKING);
+					}
 				}
 			}
 		}
@@ -10950,12 +11068,14 @@ bool GenericGUIMenu::scribingWriteItem(Item* item)
 			return false;
 		}
 
+		int overLevels = 0;
 		bool increaseSkill = false;
 		if ( stats[gui_player] )
 		{
 			if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.magicFactor) )
 			{
 				increaseSkill = true;
+				overLevels = gameplayCustomManager.processOverlevel(1000, 200, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
 			}
 		}
 
@@ -10977,6 +11097,27 @@ bool GenericGUIMenu::scribingWriteItem(Item* item)
 				if ( players[gui_player] && players[gui_player]->entity )
 				{
 					players[gui_player]->entity->increaseSkill(PRO_MAGIC);
+				}
+			}
+			for (; overLevels > 0; overLevels--)
+			{
+				if (multiplayer == CLIENT)
+				{
+					// request level up
+					strcpy((char*)net_packet->data, "CSKL");
+					net_packet->data[4] = gui_player;
+					net_packet->data[5] = PRO_MAGIC;
+					net_packet->address.host = net_server.host;
+					net_packet->address.port = net_server.port;
+					net_packet->len = 6;
+					sendPacketSafe(net_sock, -1, net_packet, 0);
+				}
+				else
+				{
+					if (players[gui_player] && players[gui_player]->entity)
+					{
+						players[gui_player]->entity->increaseSkill(PRO_MAGIC);
+					}
 				}
 			}
 		}
@@ -11041,12 +11182,14 @@ bool GenericGUIMenu::scribingWriteItem(Item* item)
 			return false;
 		}
 
+		int overLevels = 0;
 		bool increaseSkill = false;
 		if ( stats[gui_player] )
 		{
 			if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.magicFactor) )
 			{
 				increaseSkill = true;
+				overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
 			}
 		}
 
@@ -11068,6 +11211,27 @@ bool GenericGUIMenu::scribingWriteItem(Item* item)
 				if ( players[gui_player] && players[gui_player]->entity )
 				{
 					players[gui_player]->entity->increaseSkill(PRO_MAGIC);
+				}
+			}
+			for (; overLevels > 0; overLevels--)
+			{
+				if (multiplayer == CLIENT)
+				{
+					// request level up
+					strcpy((char*)net_packet->data, "CSKL");
+					net_packet->data[4] = gui_player;
+					net_packet->data[5] = PRO_MAGIC;
+					net_packet->address.host = net_server.host;
+					net_packet->address.port = net_server.port;
+					net_packet->len = 6;
+					sendPacketSafe(net_sock, -1, net_packet, 0);
+				}
+				else
+				{
+					if (players[gui_player] && players[gui_player]->entity)
+					{
+						players[gui_player]->entity->increaseSkill(PRO_MAGIC);
+					}
 				}
 			}
 		}

@@ -2212,6 +2212,7 @@ static void changeLevel() {
     std::atomic_bool loading_done {false};
     auto loading_task = std::async(std::launch::async, [&loading_done](){
 	    gameplayCustomManager.readFromFile();
+		gameplayCustomManager.readFromGlobals();
         updateLoadingScreen(10);
 
 	    int checkMapHash = -1;
@@ -2268,6 +2269,19 @@ static void changeLevel() {
 	if ( !secretlevel )
 	{
 		messagePlayer(clientnum, MESSAGE_PROGRESSION, Language::get(710), currentlevel);
+		Uint32 versionWarningColor = makeColorRGB(255, 0, 0);
+		auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
+		if (!versionValid)
+		{
+			if (versionDirection == 1)
+			{
+				messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(735));
+			}
+			else if (versionDirection == -1)
+			{
+				messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(736));
+			}
+		}
 	}
 	else
 	{
@@ -6573,19 +6587,14 @@ static std::unordered_map<Uint32, void(*)()> serverPacketHandlers = {
 		entitystats->GOLD += buyValue;
 		stats[client]->GOLD -= buyValue;
 		stats[client]->GOLD = std::max(0, stats[client]->GOLD);
+		int overLevels = 0;
 		if ( players[client] && players[client]->entity && !item->playerSoldItemToShop )
 		{
 			bool increaseSkill = false;
-			if ( buyValue >= 100 )
+			if ( rand() % 1000 <= (((std::max(10, buyValue)) * 10) * gameplayCustomManager.tradingFactor) ) // 20% to 100% from 1-100 gold
 			{
 				increaseSkill = true;
-			}
-			else
-			{
-				if ( rand() % 1000 <= (((std::max(10, buyValue)) * 10) * gameplayCustomManager.tradingFactor) ) // 20% to 100% from 1-100 gold
-				{
-					increaseSkill = true;
-				}
+				overLevels = gameplayCustomManager.processOverlevel(1000, ((std::max(10, buyValue)) * 10), gameplayCustomManager.tradingFactor, gameplayCustomManager.ovEnabled);
 			}
 			if ( increaseSkill )
 			{
@@ -6599,6 +6608,20 @@ static std::unordered_map<Uint32, void(*)()> serverPacketHandlers = {
 				else
 				{
 					players[client]->entity->increaseSkill(PRO_TRADING);
+				}
+				for (; overLevels > 0; overLevels--)
+				{
+					if (buyValue <= 1)
+					{
+						if (stats[client]->getProficiency(PRO_TRADING) < SKILL_LEVEL_SKILLED)
+						{
+							players[client]->entity->increaseSkill(PRO_TRADING);
+						}
+					}
+					else
+					{
+						players[client]->entity->increaseSkill(PRO_TRADING);
+					}
 				}
 			}
 			//if ( local_rng.rand() % 2 )

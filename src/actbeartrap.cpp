@@ -239,6 +239,11 @@ void actBeartrap(Entity* my)
 								if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor) )
 								{
 									parent->increaseSkill(PRO_LOCKPICKING);
+									int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+									for (; overLevels > 0; overLevels--)
+									{
+										parent->increaseSkill(PRO_LOCKPICKING);
+									}
 								}
 								//if ( local_rng.rand() % 5 == 0 )
 								//{
@@ -651,6 +656,11 @@ void bombDoEffect(Entity* my, Entity* triggered, real_t entityDistance, bool spa
 					if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor) )
 					{
 						parent->increaseSkill(PRO_LOCKPICKING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 200, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							parent->increaseSkill(PRO_LOCKPICKING);
+						}
 					}
 				}
 				else if ( oldHP > stat->HP )
@@ -658,11 +668,21 @@ void bombDoEffect(Entity* my, Entity* triggered, real_t entityDistance, bool spa
 					if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor) ) // wounded
 					{
 						parent->increaseSkill(PRO_LOCKPICKING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 50, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							parent->increaseSkill(PRO_LOCKPICKING);
+						}
 					}
 				}
 				else if( local_rng.rand() % 1000 < (50 * gameplayCustomManager.tinkeringFactor)) // any other effect
 				{
 					parent->increaseSkill(PRO_LOCKPICKING);
+					int overLevels = gameplayCustomManager.processOverlevel(1000, 50, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+					for (; overLevels > 0; overLevels--)
+					{
+						parent->increaseSkill(PRO_LOCKPICKING);
+					}
 				}
 
 				if ( !achievementObserver.playerAchievements[player].bombTrack )

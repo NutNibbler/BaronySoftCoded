@@ -932,11 +932,17 @@ void actThrown(Entity* my)
 							}
 						}
 					}
+					int overLevels = 0;
 					if ( !ignorePotion )   // this makes it impossible to bork the end boss :)
 					{
 						if ( local_rng.rand() % 1000 < (250 * gameplayCustomManager.alchemyFactor) && parent != NULL && itemCategory(item) == POTION && item->type != POTION_EMPTY)
 						{
 							parent->increaseSkill(PRO_ALCHEMY);
+							overLevels = gameplayCustomManager.processOverlevel(1000, 250, gameplayCustomManager.alchemyFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								parent->increaseSkill(PRO_ALCHEMY);
+							}
 						}
 						switch ( itemType )
 						{
@@ -1321,12 +1327,19 @@ void actThrown(Entity* my)
 						doSkillIncrease = false; // no skill for killing/hurting players
 					}
 					int chance = 200;
+					int overLevels = 0;
 					if ( doSkillIncrease && (local_rng.rand() % 1000 < (chance * gameplayCustomManager.rangedFactor)) && parent && parent->getStats() )
 					{
 						if ( hitstats->type != DUMMYBOT 
 							|| (hitstats->type == DUMMYBOT && parent->getStats()->getProficiency(PRO_RANGED) < SKILL_LEVEL_BASIC) )
 						{
 							parent->increaseSkill(PRO_RANGED);
+							overLevels = gameplayCustomManager.processOverlevel(1000, chance, gameplayCustomManager.rangedFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								parent->increaseSkill(PRO_RANGED);
+							}
+
 						}
 					}
 				}

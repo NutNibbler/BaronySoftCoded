@@ -3413,6 +3413,10 @@ namespace ConsoleCommands {
 		gameplayCustomManager.writeAllToDocument();
 		});
 
+	static ConsoleCommand ccmd_jsonexportglobals("/jsonexportglobals", "", []CCMD{
+		gameplayCustomManager.writeAllToGlobals();
+		});
+
 	static ConsoleCommand ccmd_jsonexportmonstercurve("/jsonexportmonstercurve", "", []CCMD{
 		monsterCurveCustomManager.writeSampleToDocument();
 		});

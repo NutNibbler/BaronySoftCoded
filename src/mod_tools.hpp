@@ -1843,7 +1843,10 @@ extern MonsterCurveCustomManager monsterCurveCustomManager;
 class GameplayCustomManager
 {
 public:
+	bool ovEnabled = false; //New bool to determine is overleveling mechanics are enabled
 	bool hungerDisabledOnFloor; //New bool to check hunger setting on each floor
+	bool vanillaGameplay = true; //New bool to track if the new global gameplay values are used, should be tied with vanillaMapGen, and will be corrected in the future
+	bool globalsActive = false; //New bool to track if the globals.json file is in-use.
 	bool usingCustomManager = false;
 	int xpShareRange = XPSHARERANGE;
 	std::pair<std::unordered_set<int>, std::unordered_set<int>> minotaurForceEnableFloors;
@@ -1877,16 +1880,30 @@ public:
 
 	int versionValue = 1;
 	inline bool inUse() { return usingCustomManager; };
+	int processOverlevel(int baseChance, int appliedChance, double appliedFactor, bool ovEnabled) // New overleveling system, processes level chance values over the expected base chance, usually 1000, returns the sum of levels to grant. USE FUNCTION AFTER LEVELING RNG CHECKS.
+	{
+		int levelGrants = 0;
+		int currentChance = appliedChance * appliedFactor;
+		while(currentChance > 0 && ovEnabled)
+		{
+			currentChance = std::max(0, currentChance - baseChance);
+			int percentSuccess = (currentChance / baseChance) * 100;
+			std::string percentSuccessString = std::to_string(percentSuccess);
+			std::string logString = "Overleveling chance of success: " + percentSuccessString + "%";
+			printlog(logString.c_str());
+			if (local_rng.rand() % baseChance < (currentChance))
+			{
+				levelGrants += 1;
+			}
+		}
+		return levelGrants;
+	}
+
 	void resetValues()
 	{
 		usingCustomManager = false;
-		xpShareRange = XPSHARERANGE;
-		globalXPPercent = 100;
-		globalGoldPercent = 100;
 		minimapShareProgress = true;
 		playerWeightPercent = 100;
-		playerSpeedMax = 12.5;
-
 		minotaurForceEnableFloors.first.clear();
 		minotaurForceEnableFloors.second.clear();
 		minotaurForceDisableFloors.first.clear();
@@ -1898,6 +1915,30 @@ public:
 		minimapDisableFloors.first.clear();
 		minimapDisableFloors.second.clear();
 		allMapGenerations.clear();
+	}
+
+	void resetGlobals()
+	{
+		xpShareRange = XPSHARERANGE;
+		globalXPPercent = 100;
+		globalGoldPercent = 100;
+		playerSpeedMax = 12.5;
+		alchemyFactor = 1.0;
+		appraisalFactor = 1.0;
+		axesFactor = 1.0;
+		leadershipFactor = 1.0;
+		macesFactor = 1.0;
+		magicFactor = 1.0;
+		polearmsFactor = 1.0;
+		rangedFactor = 1.0;
+		shieldsFactor = 1.0;
+		spellcastingFactor = 1.0;
+		stealthFactor = 1.0;
+		swimmingFactor = 1.0;
+		swordsFactor = 1.0;
+		tinkeringFactor = 1.0;
+		tradingFactor = 1.0;
+		unarmedFactor = 1.0;
 	}
 
 	class MapGeneration
@@ -1968,10 +2009,11 @@ public:
 	{
 		rapidjson::Document d;
 		d.SetObject();
-
+		/*
 		CustomHelpers::addMemberToRoot(d, "version", rapidjson::Value(2));
 		CustomHelpers::addMemberToRoot(d, "xp_share_range", rapidjson::Value(xpShareRange));
 		CustomHelpers::addMemberToRoot(d, "global_xp_award_percent", rapidjson::Value(globalXPPercent));
+		CustomHelpers::addMemberToRoot(d, "overleveling_enabled", rapidjson::Value(ovEnabled));
 		CustomHelpers::addMemberToRoot(d, "global_gold_drop_scale_percent", rapidjson::Value(globalGoldPercent));
 		CustomHelpers::addMemberToRoot(d, "player_speed_max", rapidjson::Value(playerSpeedMax));
 		CustomHelpers::addMemberToRoot(d, "alchemy_lvlfactor", rapidjson::Value(alchemyFactor));
@@ -1990,9 +2032,9 @@ public:
 		CustomHelpers::addMemberToRoot(d, "tinkering_lvlfactor", rapidjson::Value(tinkeringFactor));
 		CustomHelpers::addMemberToRoot(d, "trading_lvlfactor", rapidjson::Value(tradingFactor));
 		CustomHelpers::addMemberToRoot(d, "unarmed_lvlfactor", rapidjson::Value(unarmedFactor));
-
-		rapidjson::Value obj(rapidjson::kObjectType);
-		rapidjson::Value arr(rapidjson::kArrayType);
+		*/
+		//rapidjson::Value obj(rapidjson::kObjectType);
+		//rapidjson::Value arr(rapidjson::kArrayType);
 
 		rapidjson::Value mapGenObj;
 		mapGenObj.SetObject();
@@ -2078,13 +2120,44 @@ public:
 		d["secret_floors"].AddMember(key3, thirdObj, d.GetAllocator());
 
 		writeToFile(d);
+		
+	}
+
+	void writeAllToGlobals() //New function to create the "globals.json" file, used to store inter-floor attributes
+	{
+		rapidjson::Document d;
+		d.SetObject();
+
+		CustomHelpers::addMemberToRoot(d, "version", rapidjson::Value(2));
+		CustomHelpers::addMemberToRoot(d, "xp_share_range", rapidjson::Value(xpShareRange));
+		CustomHelpers::addMemberToRoot(d, "global_xp_award_percent", rapidjson::Value(globalXPPercent));
+		CustomHelpers::addMemberToRoot(d, "overleveling_enabled", rapidjson::Value(ovEnabled));
+		CustomHelpers::addMemberToRoot(d, "global_gold_drop_scale_percent", rapidjson::Value(globalGoldPercent));
+		CustomHelpers::addMemberToRoot(d, "player_speed_max", rapidjson::Value(playerSpeedMax));
+		CustomHelpers::addMemberToRoot(d, "alchemy_lvlfactor", rapidjson::Value(alchemyFactor));
+		CustomHelpers::addMemberToRoot(d, "appraisal_lvlfactor", rapidjson::Value(appraisalFactor));
+		CustomHelpers::addMemberToRoot(d, "axes_lvlfactor", rapidjson::Value(axesFactor));
+		CustomHelpers::addMemberToRoot(d, "leadership_lvlfactor", rapidjson::Value(leadershipFactor));
+		CustomHelpers::addMemberToRoot(d, "maces_lvlfactor", rapidjson::Value(macesFactor));
+		CustomHelpers::addMemberToRoot(d, "magic_lvlfactor", rapidjson::Value(magicFactor));
+		CustomHelpers::addMemberToRoot(d, "polearms_lvlfactor", rapidjson::Value(polearmsFactor));
+		CustomHelpers::addMemberToRoot(d, "ranged_lvlfactor", rapidjson::Value(rangedFactor));
+		CustomHelpers::addMemberToRoot(d, "shields_lvlfactor", rapidjson::Value(shieldsFactor));
+		CustomHelpers::addMemberToRoot(d, "spellcasting_lvlfactor", rapidjson::Value(spellcastingFactor));
+		CustomHelpers::addMemberToRoot(d, "stealth_lvlfactor", rapidjson::Value(stealthFactor));
+		CustomHelpers::addMemberToRoot(d, "swimming_lvlfactor", rapidjson::Value(swimmingFactor));
+		CustomHelpers::addMemberToRoot(d, "swords_lvlfactor", rapidjson::Value(swordsFactor));
+		CustomHelpers::addMemberToRoot(d, "tinkering_lvlfactor", rapidjson::Value(tinkeringFactor));
+		CustomHelpers::addMemberToRoot(d, "trading_lvlfactor", rapidjson::Value(tradingFactor));
+		CustomHelpers::addMemberToRoot(d, "unarmed_lvlfactor", rapidjson::Value(unarmedFactor));
+		writeToGlobals(d);
 	}
 
 	void writeToFile(rapidjson::Document& d)
 	{
 		int filenum = 0;
 		std::string testPath = "/data/gameplaymodifiers_export" + std::to_string(filenum) + ".json";
-		while ( PHYSFS_getRealDir(testPath.c_str()) != nullptr && filenum < 1000 )
+		while (PHYSFS_getRealDir(testPath.c_str()) != nullptr && filenum < 1000)
 		{
 			++filenum;
 			testPath = "/data/gameplaymodifiers_export" + std::to_string(filenum) + ".json";
@@ -2095,7 +2168,34 @@ public:
 		outputPath.append(fileName.c_str());
 
 		File* fp = FileIO::open(outputPath.c_str(), "wb");
-		if ( !fp )
+		if (!fp)
+		{
+			return;
+		}
+		rapidjson::StringBuffer os;
+		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(os);
+		d.Accept(writer);
+		fp->write(os.GetString(), sizeof(char), os.GetSize());
+
+		FileIO::close(fp);
+	}
+
+	void writeToGlobals(rapidjson::Document& d)
+	{
+		int filenum = 0;
+		std::string testPath = "/data/globals_export" + std::to_string(filenum) + ".json";
+		while (PHYSFS_getRealDir(testPath.c_str()) != nullptr && filenum < 1000)
+		{
+			++filenum;
+			testPath = "/data/globals_export" + std::to_string(filenum) + ".json";
+		}
+		std::string outputPath = PHYSFS_getRealDir("/data/");
+		outputPath.append(PHYSFS_getDirSeparator());
+		std::string fileName = "data/globals_export" + std::to_string(filenum) + ".json";
+		outputPath.append(fileName.c_str());
+
+		File* fp = FileIO::open(outputPath.c_str(), "wb");
+		if (!fp)
 		{
 			return;
 		}
@@ -2153,7 +2253,104 @@ public:
 			printlog("[JSON]: Successfully read json file %s", inputPath.c_str());
 		}
 	}
-	bool vanillaGameplay = true; //New bool to track if the new global gameplay values are used, should be tied with vanillaMapGen, and will be corrected in the future
+
+	void readFromGlobals()
+	{
+		resetGlobals();
+		if (PHYSFS_getRealDir("/data/globals.json"))
+		{
+			std::string inputPath = PHYSFS_getRealDir("/data/globals.json");
+			inputPath.append("/data/globals.json");
+
+			File* fp = FileIO::open(inputPath.c_str(), "rb");
+			if (!fp)
+			{
+				printlog("[JSON]: Error: Could not locate json file %s", inputPath.c_str());
+				return;
+			}
+			char buf[65536];
+			int count = fp->read(buf, sizeof(buf[0]), sizeof(buf));
+			buf[count] = '\0';
+			rapidjson::StringStream is(buf);
+			FileIO::close(fp);
+
+			rapidjson::Document d;
+			d.ParseStream(is);
+			if (!d.HasMember("version"))
+			{
+				printlog("[JSON]: Error: No 'version' value in json file, or JSON syntax incorrect! %s", inputPath.c_str());
+				return;
+			}
+			int version = d["version"].GetInt();
+
+			for (rapidjson::Value::ConstMemberIterator prop_itr = d.MemberBegin(); prop_itr != d.MemberEnd(); ++prop_itr)
+			{
+				if (readKeyToGameplayProperty(prop_itr))
+				{
+					if (version == 2)
+					{
+						vanillaGameplay = false;
+						globalsActive = true;
+					}
+				}
+			}
+
+			printlog("[JSON]: Successfully read json file %s", inputPath.c_str());
+		}
+	}
+
+	std::pair<bool,int> verifyAcornsVersion()
+	{
+		double validAcornsVersion = 1.02;
+
+		if (PHYSFS_getRealDir("/data/version.json"))
+		{
+			std::string inputPath = PHYSFS_getRealDir("/data/version.json");
+			inputPath.append("/data/version.json");
+
+			File* fp = FileIO::open(inputPath.c_str(), "rb");
+			if (!fp)
+			{
+				printlog("[JSON]: Error: Could not locate json file %s", inputPath.c_str());
+				return { false,0 };
+			}
+			char buf[65536];
+			int count = fp->read(buf, sizeof(buf[0]), sizeof(buf));
+			buf[count] = '\0';
+			rapidjson::StringStream is(buf);
+			FileIO::close(fp);
+
+			rapidjson::Document d;
+			d.ParseStream(is);
+			if (!d.HasMember("acornsVersion"))
+			{
+				printlog("[JSON]: Error: No 'acornsVersion' value in json file, or JSON syntax incorrect! %s", inputPath.c_str());
+				return { false,0 };
+			}
+			double acornsVersion = d["acornsVersion"].GetDouble();
+			std::string logString = "Acorns Core internal version: " + std::to_string(validAcornsVersion);
+			printlog(logString.c_str());
+			logString = "Acorns Core file version: " + std::to_string(acornsVersion);
+			printlog(logString.c_str());
+			if (validAcornsVersion == acornsVersion)
+			{
+				std::string logString = "Acorns Core VALIDATED with version: " + std::to_string(validAcornsVersion);
+				printlog(logString.c_str());
+				return { true,0 };
+			}
+			else if (validAcornsVersion < acornsVersion)
+			{
+				return { false,-1 };
+			}
+			else if (validAcornsVersion > acornsVersion)
+			{
+				return { false, 1 };
+			}
+			return { false,0 };
+		}
+		return { false,0 };
+	}
+
 	bool readKeyToGameplayProperty(rapidjson::Value::ConstMemberIterator& itr)
 	{
 		std::string name = itr->name.GetString();
@@ -2170,6 +2367,11 @@ public:
 		else if (name.compare("global_xp_award_percent") == 0)
 		{
 			globalXPPercent = itr->value.GetInt();
+			return true;
+		}
+		else if (name.compare("overleveling_enabled") == 0 && !vanillaGameplay)
+		{
+			ovEnabled = itr->value.GetBool();
 			return true;
 		}
 		else if (name.compare("global_gold_drop_scale_percent") == 0)
@@ -2502,7 +2704,6 @@ public:
 				else
 				{
 					hungerDisabledOnFloor = false;
-					printlog("Hunger enabled for this floor");
 				}
 			}
 			return true;

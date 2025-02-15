@@ -4774,6 +4774,11 @@ void actMonster(Entity* my)
 										if ( local_rng.rand() % 1000 < (10 * gameplayCustomManager.stealthFactor) )
 										{
 											entity->increaseSkill(PRO_STEALTH);
+											int overLevels = gameplayCustomManager.processOverlevel(1000, 10, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+											for (; overLevels > 0; overLevels--)
+											{
+												entity->increaseSkill(PRO_STEALTH);
+											}
 										}
 								}
 								continue;
@@ -5488,6 +5493,11 @@ void actMonster(Entity* my)
 								if ( local_rng.rand() % 1000 < (10 * gameplayCustomManager.stealthFactor) )
 								{
 									entity->increaseSkill(PRO_STEALTH);
+									int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+									for (; overLevels > 0; overLevels--)
+									{
+										entity->increaseSkill(PRO_STEALTH);
+									}
 								}
 							}
 						}
@@ -6464,6 +6474,11 @@ timeToGoAgain:
 										if ( local_rng.rand() % 1000 < (10 * gameplayCustomManager.stealthFactor) )
 										{
 											entity->increaseSkill(PRO_STEALTH);
+											int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+											for (; overLevels > 0; overLevels--)
+											{
+												entity->increaseSkill(PRO_STEALTH);
+											}
 										}
 									}
 								}
@@ -11736,6 +11751,11 @@ void Entity::monsterAllySendCommand(int command, int destX, int destY, Uint32 ui
 						&& myStats->HP < myStats->MAXHP && local_rng.rand() % 1000 < (333 * gameplayCustomManager.leadershipFactor) )
 					{
 						players[monsterAllyIndex]->entity->increaseSkill(PRO_LEADERSHIP);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 333, gameplayCustomManager.leadershipFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							players[monsterAllyIndex]->entity->increaseSkill(PRO_LEADERSHIP);
+						}
 					}
 				}
 				else
@@ -12678,6 +12698,11 @@ bool Entity::monsterConsumeFoodEntity(Entity* food, Stat* myStats)
 	if ( !puking && leader && local_rng.rand() % 1000 < (500 * gameplayCustomManager.leadershipFactor) )
 	{
 		leader->increaseSkill(PRO_LEADERSHIP);
+		int overLevels = gameplayCustomManager.processOverlevel(1000, 500, gameplayCustomManager.leadershipFactor, gameplayCustomManager.ovEnabled);
+		for (; overLevels > 0; overLevels--)
+		{
+			players[monsterAllyIndex]->entity->increaseSkill(PRO_LEADERSHIP);
+		}
 	}
 
 	if ( buffDuration > 0 )

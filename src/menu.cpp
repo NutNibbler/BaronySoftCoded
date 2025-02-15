@@ -8604,6 +8604,7 @@ void doNewGame(bool makeHighscore) {
         camera.luminance = defaultLuminance;
 	}
 	gameplayCustomManager.readFromFile();
+	gameplayCustomManager.readFromGlobals();
 	textSourceScript.scriptVariables.clear();
 
 	if ( multiplayer == CLIENT )

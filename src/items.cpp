@@ -2969,6 +2969,25 @@ void useItem(Item* item, const int player, Entity* usedBy, bool unequipForDroppi
 							{
 								players[player]->entity->increaseSkill(PRO_APPRAISAL);
 							}
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 250, gameplayCustomManager.appraisalFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								if (multiplayer == CLIENT)
+								{
+									// request level up
+									strcpy((char*)net_packet->data, "CSKL");
+									net_packet->data[4] = player;
+									net_packet->data[5] = PRO_APPRAISAL;
+									net_packet->address.host = net_server.host;
+									net_packet->address.port = net_server.port;
+									net_packet->len = 6;
+									sendPacketSafe(net_sock, -1, net_packet, 0);
+								}
+								else
+								{
+									players[player]->entity->increaseSkill(PRO_APPRAISAL);
+								}
+							}
 						}
 					}
 				}
@@ -5168,6 +5187,11 @@ void Item::applyLockpickToWall(const int player, const int x, const int y) const
 					if ( !failed && local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor))
 					{
 						players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 200, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+						}
 					}
 					return;
 				}

@@ -585,6 +585,7 @@ void actArrow(Entity* my)
 					}
 
 					int numBlessings = 0;
+					int overLevels = 0;
 					real_t targetACEffectiveness = Entity::getACEffectiveness(hit.entity, hitstats, hit.entity->behavior == &actPlayer, parent, parent ? parent->getStats() : nullptr, numBlessings);
 					int attackAfterReductions = static_cast<int>(std::max(0.0, ((my->arrowPower * targetACEffectiveness - enemyAC))) + (1.0 - targetACEffectiveness) * my->arrowPower);
 					int damage = attackAfterReductions;
@@ -631,6 +632,11 @@ void actArrow(Entity* my)
 									if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.stealthFactor) && hit.entity->behavior != &actPlayer)
 									{
 										parent->increaseSkill(PRO_STEALTH);
+										overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+										for (; overLevels > 0; overLevels--)
+										{
+											parent->increaseSkill(PRO_STEALTH);
+										}
 									}
 									backstab = true;
 								}
@@ -643,6 +649,11 @@ void actArrow(Entity* my)
 									if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.stealthFactor) && hit.entity->behavior != &actPlayer)
 									{
 										parent->increaseSkill(PRO_STEALTH);
+										overLevels = gameplayCustomManager.processOverlevel(1000, 50, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+										for (; overLevels > 0; overLevels--)
+										{
+											parent->increaseSkill(PRO_STEALTH);
+										}
 									}
 									flanking = true;
 								}
@@ -860,12 +871,18 @@ void actArrow(Entity* my)
 							doSkillIncrease = false; // no skill for killing/hurting players
 						}
 						int chance = 100;
+						int overLevels = 0;
 						if ( doSkillIncrease && (local_rng.rand() % 1000 < (chance * gameplayCustomManager.rangedFactor)) && parent && parent->getStats() )
 						{
 							if ( hitstats->type != DUMMYBOT 
 								|| (hitstats->type == DUMMYBOT && parent->getStats()->getProficiency(PRO_RANGED) < SKILL_LEVEL_BASIC) )
 							{
 								parent->increaseSkill(PRO_RANGED);
+								overLevels = gameplayCustomManager.processOverlevel(1000, chance, gameplayCustomManager.rangedFactor, gameplayCustomManager.ovEnabled);
+								for (; overLevels > 0; overLevels--)
+								{
+									parent->increaseSkill(PRO_RANGED);
+								}
 							}
 						}
 					}
@@ -1371,6 +1388,11 @@ void actArrow(Entity* my)
 											if ( increaseSkill )
 											{
 												hit.entity->increaseSkill(PRO_SHIELD); // increase shield skill
+												int overLevels = gameplayCustomManager.processOverlevel(1000, roll, gameplayCustomManager.shieldsFactor, gameplayCustomManager.ovEnabled);
+												for (; overLevels > 0; overLevels--)
+												{
+													hit.entity->increaseSkill(PRO_SHIELD);
+												}
 												if ( hit.entity->behavior == &actPlayer )
 												{
 													players[hit.entity->skill[2]]->mechanics.enemyRaisedBlockingAgainst[parent->getUID()]++;

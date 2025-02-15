@@ -25,6 +25,7 @@ SOFT CODED SECRET ROOM SPAWNING MECHANICS, NOW LOCATED AT ./maps/secretrooms.txt
 	Entries into secretrooms.txt can't have duplicate floor numbers, in all liklihood, the top-most entry will be used(not tested)
     
 NEW GAMEPLAYMODIFIERS.JSON FORMAT, USE COMMAND "/jsonexportgameplaymodifiers" in-game to get a sample copy of the new format.
+NEW GLOBALS.JSON FILE, Holds the inter-floor attributes, the purpose of this is primarily to allow map pack creators to make packs without being forced to take up the gameplay elements in their mod.
 
 Changed gameplayModifiers.json file to now read floor generation data by floor number, rather than floor name. 
     There are seperated groups within the json file for standard and secret floors, which should be titled "floors" and "secret_floors"
@@ -41,3 +42,5 @@ REWORKED LEVELING MECHANICS TO RUN A CHECK FOR A VALUE UNDER 1000, THIS VALUE CA
     Breakdown:
         Each skill in Barony levels up with a random chance whenever certain activities are done, now, the weight of the chances can be adjusted.
         
+NEW OVERLEVELING SYSTEM, RNG ROLLS FOR A LEVEL UP WITH OVER A 100% CHANCE OF SUCCESS CAN ROLL AGAIN FOR THE REMAINDER
+ - Only really noticed in cases where increased level factors are used.

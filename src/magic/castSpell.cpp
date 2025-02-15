@@ -2620,6 +2620,11 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 					if ( local_rng.rand() % 1000 < (166 * gameplayCustomManager.spellcastingFactor) ) //16.67%
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 166, gameplayCustomManager.spellcastingFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_SPELLCASTING);
+						}
 					}
 				}
 				else if ( stat->getProficiency(PRO_SPELLCASTING) < 80 )
@@ -2627,6 +2632,11 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 					if ( local_rng.rand() % 1000 < (111 * gameplayCustomManager.spellcastingFactor) ) //11.11%
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 111, gameplayCustomManager.spellcastingFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_SPELLCASTING);
+						}
 					}
 				}
 				else // greater than 80
@@ -2634,6 +2644,11 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 					if ( local_rng.rand() % 1000 < (83 * gameplayCustomManager.spellcastingFactor) ) //8.33%
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 83, gameplayCustomManager.spellcastingFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_SPELLCASTING);
+						}
 					}
 				}
 
@@ -2643,6 +2658,11 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 					if ( local_rng.rand() % 1000 < (142 * gameplayCustomManager.magicFactor) ) //14.2%
 					{
 						caster->increaseSkill(PRO_MAGIC);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 142, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_MAGIC);
+						}
 					}
 				}
 				else if ( stat->getProficiency(PRO_SPELLCASTING) < 80 )
@@ -2650,6 +2670,11 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 					if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.magicFactor) ) //10.00%
 					{
 						caster->increaseSkill(PRO_MAGIC);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_MAGIC);
+						}
 					}
 				}
 				else // greater than 80
@@ -2657,6 +2682,11 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 					if ( local_rng.rand() % 1000 < (77 * gameplayCustomManager.magicFactor) ) //7.69%
 					{
 						caster->increaseSkill(PRO_MAGIC);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, 77, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_MAGIC);
+						}
 					}
 				}
 			}
@@ -2748,11 +2778,21 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 							players[caster->skill[2]]->mechanics.sustainedSpellMPUsed = 0;
 
 							caster->increaseSkill(PRO_SPELLCASTING);
+							int overLevels = gameplayCustomManager.processOverlevel(1000, spellCastChance, gameplayCustomManager.spellcastingFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								caster->increaseSkill(PRO_SPELLCASTING);
+							}
 						}
 					}
 					else
 					{
 						caster->increaseSkill(PRO_SPELLCASTING);
+						int overLevels = gameplayCustomManager.processOverlevel(1000, spellCastChance, gameplayCustomManager.spellcastingFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_SPELLCASTING);
+						}
 					}
 				}
 
@@ -2767,12 +2807,22 @@ Entity* castSpell(Uint32 caster_uid, spell_t* spell, bool using_magicstaff, bool
 
 							caster->increaseSkill(PRO_MAGIC); // otherwise you will basically never be able to learn all the spells in the game...
 							magicIncreased = true;
+							int overLevels = gameplayCustomManager.processOverlevel(1000, magicChance, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								caster->increaseSkill(PRO_MAGIC);
+							}
 						}
 					}
 					else
 					{
 						caster->increaseSkill(PRO_MAGIC); // otherwise you will basically never be able to learn all the spells in the game...
 						magicIncreased = true;
+						int overLevels = gameplayCustomManager.processOverlevel(1000, magicChance, gameplayCustomManager.magicFactor, gameplayCustomManager.ovEnabled);
+						for (; overLevels > 0; overLevels--)
+						{
+							caster->increaseSkill(PRO_MAGIC);
+						}
 					}
 				}
 				if ( magicIncreased && usingSpellbook && caster->behavior == &actPlayer )

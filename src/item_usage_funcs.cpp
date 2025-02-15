@@ -2396,6 +2396,25 @@ void onScrollUseAppraisalIncrease(Item* item, int player)
 					{
 						players[player]->entity->increaseSkill(PRO_APPRAISAL);
 					}
+					int overLevels = gameplayCustomManager.processOverlevel(1000, 250, gameplayCustomManager.appraisalFactor, gameplayCustomManager.ovEnabled);
+					for (; overLevels > 0; overLevels--)
+					{
+						if (multiplayer == CLIENT)
+						{
+							// request level up
+							strcpy((char*)net_packet->data, "CSKL");
+							net_packet->data[4] = player;
+							net_packet->data[5] = PRO_APPRAISAL;
+							net_packet->address.host = net_server.host;
+							net_packet->address.port = net_server.port;
+							net_packet->len = 6;
+							sendPacketSafe(net_sock, -1, net_packet, 0);
+						}
+						else
+						{
+							players[player]->entity->increaseSkill(PRO_APPRAISAL);
+						}
+					}
 				}
 			}
 		}

@@ -9048,6 +9048,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 										if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.stealthFactor) )
 										{
 											this->increaseSkill(PRO_STEALTH);
+											int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+											for (; overLevels > 0; overLevels--)
+											{
+												this->increaseSkill(PRO_STEALTH);
+											}
 										}
 									}
 									else
@@ -9055,6 +9060,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 										if ( local_rng.rand() % 1000 < (750 * gameplayCustomManager.stealthFactor) )
 										{
 											this->increaseSkill(PRO_STEALTH);
+											int overLevels = gameplayCustomManager.processOverlevel(1000, 750, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+											for (;overLevels > 0; overLevels--)
+											{
+												this->increaseSkill(PRO_STEALTH);
+											}
 										}
 									}
 								}
@@ -9068,6 +9078,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 								if ( local_rng.rand() % 1000 < (50 * gameplayCustomManager.stealthFactor) && hit.entity->behavior != &actPlayer)
 								{
 									this->increaseSkill(PRO_STEALTH);
+									int overLevels = gameplayCustomManager.processOverlevel(1000, 50, gameplayCustomManager.stealthFactor, gameplayCustomManager.ovEnabled);
+									for (; overLevels > 0; overLevels--)
+									{
+										this->increaseSkill(PRO_STEALTH);
+									}
 								}
 							}
 						}
@@ -9274,6 +9289,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 								if ( hitstats->type != DUMMYBOT || (hitstats->type == DUMMYBOT && myStats->getProficiency(weaponskill) < SKILL_LEVEL_BASIC) )
 								{
 									this->increaseSkill(weaponskill, notify);
+									int overLevels = gameplayCustomManager.processOverlevel(1000, chance, activeFactor, gameplayCustomManager.ovEnabled);
+									for (; overLevels > 0; overLevels--)
+									{
+										this->increaseSkill(weaponskill, notify);
+									}
 									skillIncreased = true;
 								}
 							}
@@ -9297,6 +9317,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 							if ( local_rng.rand() % 1000 < (chance * activeFactor))
 							{
 								this->increaseSkill(weaponskill, notify);
+								int overLevels = gameplayCustomManager.processOverlevel(1000, chance, activeFactor, gameplayCustomManager.ovEnabled);
+								for (; overLevels > 0; overLevels--)
+								{
+									this->increaseSkill(weaponskill, notify);
+								}
 								skillIncreased = true;
 							}
 						}
@@ -9316,6 +9341,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 								if ( hitstats->type != DUMMYBOT || (hitstats->type == DUMMYBOT && myStats->getProficiency(weaponskill) < SKILL_LEVEL_BASIC) )
 								{
 									this->increaseSkill(weaponskill, notify);
+									int overLevels = gameplayCustomManager.processOverlevel(1000, chance, activeFactor, gameplayCustomManager.ovEnabled);
+									for (; overLevels > 0; overLevels--)
+									{
+										this->increaseSkill(weaponskill, notify);
+									}
 									skillIncreased = true;
 								}
 							}
@@ -9701,6 +9731,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 										if ( increaseSkill )
 										{
 											hit.entity->increaseSkill(PRO_SHIELD); // increase shield skill
+											int overLevels = gameplayCustomManager.processOverlevel(1000, roll, gameplayCustomManager.shieldsFactor, gameplayCustomManager.ovEnabled);
+											for (; overLevels > 0; overLevels--)
+											{
+												hit.entity->increaseSkill(PRO_SHIELD);
+											}
 											shieldIncreased = true;
 											if ( hit.entity->behavior == &actPlayer )
 											{
@@ -10503,6 +10538,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 								if ( increaseSkill )
 								{
 									this->increaseSkill(PRO_SHIELD);
+									int overLevels = gameplayCustomManager.processOverlevel(1000, 800, gameplayCustomManager.shieldsFactor, gameplayCustomManager.ovEnabled);
+									for (; overLevels > 0; overLevels--)
+									{
+										this->increaseSkill(PRO_SHIELD);
+									}
 								}
 							}
 							achievementStatusRhythmOfTheKnight[player] = false;
@@ -11184,6 +11224,11 @@ void Entity::attack(int pose, int charge, Entity* target)
 										if ( skillIncrease )
 										{
 											hit.entity->increaseSkill(PRO_SHIELD);
+											int overLevels = gameplayCustomManager.processOverlevel(1000, 800, gameplayCustomManager.shieldsFactor, gameplayCustomManager.ovEnabled);
+											for (; overLevels > 0; overLevels--)
+											{
+												hit.entity->increaseSkill(PRO_SHIELD);
+											}
 											shieldIncreased = true;
 										}
 									}
@@ -13335,6 +13380,11 @@ void Entity::awardXP(Entity* src, bool share, bool root)
 				if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor) || (uidToEntity(src->monsterTarget) != this && local_rng.rand() % 1000 < (333 * gameplayCustomManager.tinkeringFactor)))
 				{
 					this->increaseSkill(PRO_LOCKPICKING);
+					int overLevels = gameplayCustomManager.processOverlevel(1000, 200, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+					for (; overLevels > 0; overLevels--)
+					{
+						this->increaseSkill(PRO_LOCKPICKING);
+					}
 				}
 			}
 			killIncrementEvent = true;
@@ -13479,9 +13529,14 @@ void Entity::awardXP(Entity* src, bool share, bool root)
 		{
 			if ( this->monsterIsTinkeringCreation() )
 			{
-				if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.tinkeringFactor) )
+				if ( local_rng.rand() % 1000 < (100 * gameplayCustomManager.leadershipFactor) )
 				{
 					leader->increaseSkill(PRO_LOCKPICKING);
+					int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+					for (; overLevels > 0; overLevels--)
+					{
+						leader->increaseSkill(PRO_LOCKPICKING);
+					}
 				}
 				if ( root && leader->behavior == &actPlayer && srcStats->type == MINOTAUR )
 				{
@@ -13505,6 +13560,11 @@ void Entity::awardXP(Entity* src, bool share, bool root)
 				if ( srcStats->type != BAT_SMALL )
 				{
 					leader->increaseSkill(PRO_LEADERSHIP);
+					int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.leadershipFactor, gameplayCustomManager.ovEnabled);
+					for (; overLevels > 0; overLevels--)
+					{
+						leader->increaseSkill(PRO_LEADERSHIP);
+					}
 				}
 			}
 			leader->awardXP(src, true, false);

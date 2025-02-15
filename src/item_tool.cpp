@@ -284,6 +284,11 @@ void Item::applyLockpick(int player, Entity& entity)
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 							tryDegradeLockpick = false;
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+							}
 						}
 					}
 					else
@@ -395,6 +400,11 @@ void Item::applyLockpick(int player, Entity& entity)
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
 							tryDegradeLockpick = false;
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 100, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+							}
 						}
 					}
 					else
@@ -493,6 +503,11 @@ void Item::applyLockpick(int player, Entity& entity)
 						if ( local_rng.rand() % 1000 < (333 * gameplayCustomManager.tinkeringFactor) )
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 333, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+							}
 						}
 
 						int qtyMetalScrap = 5 + rng.rand() % 6;
@@ -534,6 +549,11 @@ void Item::applyLockpick(int player, Entity& entity)
 						if ( local_rng.rand() % 1000 < (200 * gameplayCustomManager.tinkeringFactor) )
 						{
 							players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 200, gameplayCustomManager.tinkeringFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								players[player]->entity->increaseSkill(PRO_LOCKPICKING);
+							}
 						}
 					}
 					if ( local_rng.rand() % 2 == 0 )

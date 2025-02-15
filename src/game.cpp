@@ -2195,6 +2195,7 @@ void gameLogic(void)
 	                std::atomic_bool loading_done {false};
 	                auto loading_task = std::async(std::launch::async, [&loading_done](){
 					    gameplayCustomManager.readFromFile();
+						gameplayCustomManager.readFromGlobals();
 					    textSourceScript.scriptVariables.clear();
 	                    updateLoadingScreen(10);
 
@@ -2303,6 +2304,19 @@ void gameLogic(void)
 					else if ( !secretlevel )
 					{
 						messageLocalPlayers(MESSAGE_PROGRESSION, Language::get(710), currentlevel);
+						Uint32 versionWarningColor = makeColorRGB(255, 0, 0);
+						auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
+						if (!versionValid)
+						{
+							if (versionDirection == 1)
+							{
+								messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(735));
+							}
+							else if (versionDirection == -1)
+							{
+								messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(736));
+							}
+						}
 					}
 					else
 					{

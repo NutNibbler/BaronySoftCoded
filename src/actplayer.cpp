@@ -5816,6 +5816,25 @@ void actPlayer(Entity* my)
 								{
 									my->increaseSkill(PRO_APPRAISAL);
 								}
+								int overLevels = gameplayCustomManager.processOverlevel(1000, appraisalEaseOfDifficulty, gameplayCustomManager.appraisalFactor, gameplayCustomManager.ovEnabled);
+								for (; overLevels > 0; overLevels--)
+								{
+									if (multiplayer == CLIENT)
+									{
+										// request level up
+										strcpy((char*)net_packet->data, "CSKL");
+										net_packet->data[4] = PLAYER_NUM;
+										net_packet->data[5] = PRO_APPRAISAL;
+										net_packet->address.host = net_server.host;
+										net_packet->address.port = net_server.port;
+										net_packet->len = 6;
+										sendPacketSafe(net_sock, -1, net_packet, 0);
+									}
+									else
+									{
+										my->increaseSkill(PRO_APPRAISAL);
+									}
+								}
 							}
 						}
 						else if ( local_rng.rand() % 1000 < (143 * gameplayCustomManager.appraisalFactor) )
@@ -5834,6 +5853,25 @@ void actPlayer(Entity* my)
 							else
 							{
 								my->increaseSkill(PRO_APPRAISAL);
+							}
+							int overLevels = gameplayCustomManager.processOverlevel(1000, 143, gameplayCustomManager.appraisalFactor, gameplayCustomManager.ovEnabled);
+							for (; overLevels > 0; overLevels--)
+							{
+								if (multiplayer == CLIENT)
+								{
+									// request level up
+									strcpy((char*)net_packet->data, "CSKL");
+									net_packet->data[4] = PLAYER_NUM;
+									net_packet->data[5] = PRO_APPRAISAL;
+									net_packet->address.host = net_server.host;
+									net_packet->address.port = net_server.port;
+									net_packet->len = 6;
+									sendPacketSafe(net_sock, -1, net_packet, 0);
+								}
+								else
+								{
+									my->increaseSkill(PRO_APPRAISAL);
+								}
 							}
 						}
 					}
@@ -6490,6 +6528,11 @@ void actPlayer(Entity* my)
 			if ( local_rng.rand() % 10000 < (25 * gameplayCustomManager.swimmingFactor) && multiplayer != CLIENT)
 			{
 				my->increaseSkill(PRO_SWIMMING);
+				int overLevels = gameplayCustomManager.processOverlevel(10000, 25, gameplayCustomManager.swimmingFactor, gameplayCustomManager.ovEnabled);
+				for (; overLevels > 0; overLevels--)
+				{
+					my->increaseSkill(PRO_SWIMMING);
+				}
 			}
 			my->z = 7;
 			if ( playerRace == SPIDER || playerRace == RAT )
