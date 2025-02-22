@@ -1472,7 +1472,33 @@ void gameLogic(void)
 					}
 				}
 			}
-
+			//Version verifier for host/server
+			if (!gameplayCustomManager.versionChecked) {
+				if (ticks % 100 == 0) {
+					Uint32 versionWarningColor = makeColorRGB(255, 0, 0);
+					auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
+					if (!versionValid)
+					{
+						for (c = 0; c < MAXPLAYERS; ++c)
+						{
+							if (players[c] && players[c]->entity)
+							{
+								printlog(std::to_string(c).c_str());
+								if (versionDirection == 1)
+								{
+									players[c]->entity->versionEffect();
+									messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(735));
+								}
+								else if (versionDirection == -1)
+								{
+									players[c]->entity->versionEffect();
+									messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(736));
+								}
+							}
+						}
+					}
+				}
+			}
 			// periodic steam achievement check
 			if ( ticks % TICKS_PER_SECOND == 0 )
 			{
@@ -2194,8 +2220,9 @@ void gameLogic(void)
 	                createLevelLoadScreen(5);
 	                std::atomic_bool loading_done {false};
 	                auto loading_task = std::async(std::launch::async, [&loading_done](){
-					    gameplayCustomManager.readFromFile();
 						gameplayCustomManager.readFromGlobals();
+					    gameplayCustomManager.readFromFile();
+						gameplayCustomManager.readFromVariants();
 					    textSourceScript.scriptVariables.clear();
 	                    updateLoadingScreen(10);
 
@@ -2304,19 +2331,6 @@ void gameLogic(void)
 					else if ( !secretlevel )
 					{
 						messageLocalPlayers(MESSAGE_PROGRESSION, Language::get(710), currentlevel);
-						Uint32 versionWarningColor = makeColorRGB(255, 0, 0);
-						auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
-						if (!versionValid)
-						{
-							if (versionDirection == 1)
-							{
-								messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(735));
-							}
-							else if (versionDirection == -1)
-							{
-								messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(736));
-							}
-						}
 					}
 					else
 					{

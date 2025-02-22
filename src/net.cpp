@@ -1650,6 +1650,33 @@ Entity* receiveEntity(Entity* entity)
 	bool newentity = false;
 	int c;
 
+	//Version verifier for clients
+	if (!gameplayCustomManager.versionChecked) {
+		if (ticks % 100 == 0) {
+			Uint32 versionWarningColor = makeColorRGB(255, 0, 0);
+			auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
+			if (!versionValid)
+			{
+				for (int c = 0; c < MAXPLAYERS; ++c)
+				{
+					if (players[c] && players[c]->entity)
+					{
+						printlog(std::to_string(c).c_str());
+						if (versionDirection == 1)
+						{
+							players[c]->entity->versionEffect();
+							messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(735));
+						}
+						else if (versionDirection == -1)
+						{
+							players[c]->entity->versionEffect();
+							messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(736));
+						}
+					}
+				}
+			}
+		}
+	}
 	//TODO: Find out if this is needed.
 	/*bool oldeffects[NUMEFFECTS];
 	Stat* entityStats = entity->getStats();
@@ -2211,8 +2238,9 @@ static void changeLevel() {
     createLevelLoadScreen(5);
     std::atomic_bool loading_done {false};
     auto loading_task = std::async(std::launch::async, [&loading_done](){
-	    gameplayCustomManager.readFromFile();
 		gameplayCustomManager.readFromGlobals();
+	    gameplayCustomManager.readFromFile();
+		gameplayCustomManager.readFromVariants();
         updateLoadingScreen(10);
 
 	    int checkMapHash = -1;
@@ -2265,10 +2293,11 @@ static void changeLevel() {
 	}
 
 	Player::Minimap_t::mapDetails.clear();
-
+	
 	if ( !secretlevel )
 	{
 		messagePlayer(clientnum, MESSAGE_PROGRESSION, Language::get(710), currentlevel);
+		/*
 		Uint32 versionWarningColor = makeColorRGB(255, 0, 0);
 		auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
 		if (!versionValid)
@@ -2282,6 +2311,7 @@ static void changeLevel() {
 				messageLocalPlayersColor(versionWarningColor, MESSAGE_WORLD, Language::get(736));
 			}
 		}
+		*/
 	}
 	else
 	{

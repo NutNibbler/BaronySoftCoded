@@ -1843,10 +1843,14 @@ extern MonsterCurveCustomManager monsterCurveCustomManager;
 class GameplayCustomManager
 {
 public:
-	bool ovEnabled = false; //New bool to determine is overleveling mechanics are enabled
+	bool ovEnabled = true; //New bool to determine is overleveling mechanics are enabled
 	bool hungerDisabledOnFloor; //New bool to check hunger setting on each floor
-	bool vanillaGameplay = true; //New bool to track if the new global gameplay values are used, should be tied with vanillaMapGen, and will be corrected in the future
+	bool vanillaGameplay = false; //New bool to track if the new global gameplay values are used, should be tied with vanillaMapGen, and will be corrected in the future
 	bool globalsActive = false; //New bool to track if the globals.json file is in-use.
+	bool variantsEnabled = true; //New bool to track if floor variants are allowed to occur.
+	bool variantActive = false; //New bool to track if a variant is active.
+	bool disableMinimap = false; //New bool to track if the minimap is active.
+	bool versionChecked = false; //New bool to track if the Acorns versions match
 	bool usingCustomManager = false;
 	int xpShareRange = XPSHARERANGE;
 	std::pair<std::unordered_set<int>, std::unordered_set<int>> minotaurForceEnableFloors;
@@ -1856,9 +1860,13 @@ public:
 	std::pair<std::unordered_set<int>, std::unordered_set<int>> minimapDisableFloors;
 	int globalXPPercent = 100;
 	int globalGoldPercent = 100;
+	int variantChance = 0; //New int for the odds roll on activating a variant 0-100 for a % chance
+	int versionDirection; //New int telling if the exe or json file is out of date.
 	bool minimapShareProgress = true;
 	int playerWeightPercent = 100;
 	double playerSpeedMax = 12.5;
+	std::string variantDesc;//String used for the variant effect tooltip
+	std::string variantTitle;//Name used for the variant effect tooltip
 
 	// NEW DOUBLE VALUES FOR EACH SKILL, THESE ARE USED TO MULTIPLY ODDS OF LEVELING FROM VARIOUS ACTIVITIES, default to 1.0(no increase or decrease in chances)
 	double alchemyFactor = 1.0;
@@ -1903,6 +1911,7 @@ public:
 	{
 		usingCustomManager = false;
 		minimapShareProgress = true;
+		disableMinimap = false;
 		playerWeightPercent = 100;
 		minotaurForceEnableFloors.first.clear();
 		minotaurForceEnableFloors.second.clear();
@@ -1919,7 +1928,9 @@ public:
 
 	void resetGlobals()
 	{
+		variantActive = false;
 		xpShareRange = XPSHARERANGE;
+		ovEnabled = true;
 		globalXPPercent = 100;
 		globalGoldPercent = 100;
 		playerSpeedMax = 12.5;
@@ -1948,6 +1959,7 @@ public:
 		std::string mapName = "";
 		std::string floorNumStr = std::to_string(currentlevel);
 		std::vector<std::string> trapTypes;
+		std::vector<std::string> variantTypes;
 		std::unordered_set<int> minoFloors;
 		std::unordered_set<int> darkFloors;
 		std::unordered_set<int> shopFloors;
@@ -2009,32 +2021,6 @@ public:
 	{
 		rapidjson::Document d;
 		d.SetObject();
-		/*
-		CustomHelpers::addMemberToRoot(d, "version", rapidjson::Value(2));
-		CustomHelpers::addMemberToRoot(d, "xp_share_range", rapidjson::Value(xpShareRange));
-		CustomHelpers::addMemberToRoot(d, "global_xp_award_percent", rapidjson::Value(globalXPPercent));
-		CustomHelpers::addMemberToRoot(d, "overleveling_enabled", rapidjson::Value(ovEnabled));
-		CustomHelpers::addMemberToRoot(d, "global_gold_drop_scale_percent", rapidjson::Value(globalGoldPercent));
-		CustomHelpers::addMemberToRoot(d, "player_speed_max", rapidjson::Value(playerSpeedMax));
-		CustomHelpers::addMemberToRoot(d, "alchemy_lvlfactor", rapidjson::Value(alchemyFactor));
-		CustomHelpers::addMemberToRoot(d, "appraisal_lvlfactor", rapidjson::Value(appraisalFactor));
-		CustomHelpers::addMemberToRoot(d, "axes_lvlfactor", rapidjson::Value(axesFactor));
-		CustomHelpers::addMemberToRoot(d, "leadership_lvlfactor", rapidjson::Value(leadershipFactor));
-		CustomHelpers::addMemberToRoot(d, "maces_lvlfactor", rapidjson::Value(macesFactor));
-		CustomHelpers::addMemberToRoot(d, "magic_lvlfactor", rapidjson::Value(magicFactor));
-		CustomHelpers::addMemberToRoot(d, "polearms_lvlfactor", rapidjson::Value(polearmsFactor));
-		CustomHelpers::addMemberToRoot(d, "ranged_lvlfactor", rapidjson::Value(rangedFactor));
-		CustomHelpers::addMemberToRoot(d, "shields_lvlfactor", rapidjson::Value(shieldsFactor));
-		CustomHelpers::addMemberToRoot(d, "spellcasting_lvlfactor", rapidjson::Value(spellcastingFactor));
-		CustomHelpers::addMemberToRoot(d, "stealth_lvlfactor", rapidjson::Value(stealthFactor));
-		CustomHelpers::addMemberToRoot(d, "swimming_lvlfactor", rapidjson::Value(swimmingFactor));
-		CustomHelpers::addMemberToRoot(d, "swords_lvlfactor", rapidjson::Value(swordsFactor));
-		CustomHelpers::addMemberToRoot(d, "tinkering_lvlfactor", rapidjson::Value(tinkeringFactor));
-		CustomHelpers::addMemberToRoot(d, "trading_lvlfactor", rapidjson::Value(tradingFactor));
-		CustomHelpers::addMemberToRoot(d, "unarmed_lvlfactor", rapidjson::Value(unarmedFactor));
-		*/
-		//rapidjson::Value obj(rapidjson::kObjectType);
-		//rapidjson::Value arr(rapidjson::kArrayType);
 
 		rapidjson::Value mapGenObj;
 		mapGenObj.SetObject();
@@ -2246,6 +2232,10 @@ public:
 					{
 						vanillaGameplay = false;
 					}
+					else if (version == 1) {
+						vanillaGameplay = true;
+					}
+
 					usingCustomManager = true;
 				}
 			}
@@ -2289,8 +2279,49 @@ public:
 				{
 					if (version == 2)
 					{
-						vanillaGameplay = false;
 						globalsActive = true;
+					}
+				}
+			}
+			printlog("[JSON]: Successfully read json file %s", inputPath.c_str());
+		}
+	}
+
+	void readFromVariants()
+	{
+		if (PHYSFS_getRealDir("/data/variants.json"))
+		{
+			std::string inputPath = PHYSFS_getRealDir("/data/variants.json");
+			inputPath.append("/data/variants.json");  
+
+			File* fp = FileIO::open(inputPath.c_str(), "rb");
+			if (!fp)
+			{
+				printlog("[JSON]: Error: Could not locate json file %s", inputPath.c_str());
+				return;
+			}
+			char buf[65536];
+			int count = fp->read(buf, sizeof(buf[0]), sizeof(buf));
+			buf[count] = '\0';
+			rapidjson::StringStream is(buf);
+			FileIO::close(fp);
+
+			rapidjson::Document d;
+			d.ParseStream(is);
+			if (!d.HasMember("version"))
+			{
+				printlog("[JSON]: Error: No 'version' value in json file, or JSON syntax incorrect! %s", inputPath.c_str());
+				return;
+			}
+			int version = d["version"].GetInt();
+
+			for (rapidjson::Value::ConstMemberIterator prop_itr = d.MemberBegin(); prop_itr != d.MemberEnd(); ++prop_itr)
+			{
+				if (readKeyToVariantProperty(prop_itr))
+				{
+					if (version == 2)
+					{
+						vanillaGameplay = false;
 					}
 				}
 			}
@@ -2299,9 +2330,665 @@ public:
 		}
 	}
 
+	bool readKeyToVariantProperty(rapidjson::Value::ConstMemberIterator& itr) //Reader for variant.json, collects file information, selects a variant, and applies the effects
+	{
+		std::string name = itr->name.GetString();
+		if (name.compare("variants_enabled") == 0 && !vanillaGameplay)
+		{
+			variantsEnabled = itr->value.GetBool();
+			return true;
+		}
+		else if (name.compare("chance") == 0 && variantsEnabled)
+		{
+			variantChance = itr->value.GetInt();
+			return true;
+		}
+		else if (name.compare("variantlist") == 0 && !vanillaGameplay) {
+			if (net_rng.rand() % 100 < variantChance && variantsEnabled) //Don't process any more variant data if the RNG check fails or if variants are disabled
+			{
+				printlog("VARIANT RNG CHECK PASSED");
+				variantActive = true;
+				if (name.compare("variantlist") == 0)
+				{
+					int variantCount = 0;
+
+					//Index of valid variant effects
+					std::vector<std::string> variantPool = {
+						"xp_share_range",
+						"global_xp_award_percent",
+						"overleveling_enabled",
+						"global_gold_drop_scale_percent",
+						"player_speed_max",
+						"alchemy_lvlfactor",
+						"appraisal_lvlfactor",
+						"axes_lvlfactor",
+						"leadership_lvlfactor",
+						"maces_lvlfactor",
+						"magic_lvlfactor",
+						"polearms_lvlfactor",
+						"ranged_lvlfactor",
+						"shields_lvlfactor",
+						"spellcasting_lvlfactor",
+						"stealth_lvlfactor",
+						"swimming_lvlfactor",
+						"swords_lvlfactor",
+						"tinkering_lvlfactor",
+						"trading_lvlfactor",
+						"unarmed_lvlfactor",
+						"player_speed_weight_impact_percent",
+						"player_share_minimap_progress",
+						"disable_hunger",
+						"disable_herx_messages",
+						"disable_minimap"
+					};
+
+					//Index of valid variant operators
+					std::vector<std::string> operatorPool = {
+						"=",
+						"+",
+						"-",
+						"*",
+						"/"
+					};
+
+					std::vector<std::string> variantList;
+					int randomVariantInt = -1;
+					std::string pickedVariant;
+					for (rapidjson::Value::ConstMemberIterator map_itr = itr->value.MemberBegin(); map_itr != itr->value.MemberEnd(); ++map_itr) //Count and insert each variant name into an array.
+					{
+						variantCount += 1;
+						variantList.push_back(map_itr->name.GetString());
+					}
+					//printlog(std::to_string(variantCount).c_str());
+					randomVariantInt = net_rng.rand() % variantCount; // Randomly select one of the variants by index
+					//printlog(std::to_string(randomVariantInt).c_str());
+					pickedVariant = variantList[randomVariantInt]; //Convert the variant index into the name of the variant
+					//printlog(pickedVariant.c_str());
+
+					const rapidjson::Value& pickedVariantData = itr->value[pickedVariant.c_str()];
+
+					for (rapidjson::Value::ConstMemberIterator key_itr = pickedVariantData.MemberBegin(); key_itr != pickedVariantData.MemberEnd(); ++key_itr)
+					{
+						bool effectBool;
+						int effectInt;
+						int effectID;
+						int operatorID;
+						double effectDouble;
+						std::string variantMessage;
+						std::string effectOperator;
+						std::string effectString;
+						std::string effectName;
+						std::string keyName = key_itr->name.GetString();
+
+						if (key_itr->value.IsString())
+						{
+							//Read and send variant message data
+							if (key_itr->name == "message") {
+								variantMessage = key_itr->value.GetString();
+								Uint32 messageColor = makeColorRGB(255, 255, 0);
+								messageLocalPlayersColor(messageColor, MESSAGE_WORLD, variantMessage.c_str());
+								//printlog(variantMessage.c_str());
+							}
+							else if (key_itr->name == "title") {
+								variantTitle = key_itr->value.GetString();
+							}
+							else if (key_itr->name == "description") {
+								variantDesc = key_itr->value.GetString();
+							}
+							//Read the operator data
+							else if(key_itr->name =="operator"){
+								effectOperator = key_itr->value.GetString();
+								auto opID = std::find(operatorPool.begin(), operatorPool.end(), effectOperator);
+								if (opID != operatorPool.end()) {
+									operatorID = std::distance(operatorPool.begin(), opID);
+									//printlog(std::to_string(operatorID).c_str());
+								}
+								else {
+									operatorID = -1;
+									//printlog(std::to_string(operatorID).c_str());
+								}
+							}
+							//printlog(("    Value: " + std::string(key_itr->value.GetString())).c_str());
+						}
+						else if (key_itr->value.IsObject())
+						{
+							//Read through the effects and process them
+							if (keyName == "effects")
+							{
+								for (rapidjson::Value::ConstMemberIterator effect_itr = key_itr->value.MemberBegin(); effect_itr != key_itr->value.MemberEnd(); ++effect_itr)
+								{
+									effectName = effect_itr->name.GetString();
+
+									// Detect the value type and convert it accordingly
+									if (effect_itr->value.IsBool()) {
+										effectBool = effect_itr->value.GetBool();
+										effectString = effect_itr->value.GetBool() ? "true" : "false";
+									}
+									else if (effect_itr->value.IsInt()) {
+										effectInt = effect_itr->value.GetInt();
+										effectString = std::to_string(effect_itr->value.GetInt());
+									}
+									else if (effect_itr->value.IsDouble()) {
+										effectDouble = effect_itr->value.GetDouble();
+										effectString = std::to_string(effect_itr->value.GetDouble());
+									}
+									else {
+										effectString = "[Unsupported Type]";
+									}
+									//printlog(("      Effect: " + effectName + " = " + effectString).c_str());
+
+									auto effID = std::find(variantPool.begin(), variantPool.end(), effectName);
+									if (effID != variantPool.end()) {
+										effectID = std::distance(variantPool.begin(), effID);
+									}
+									else {
+										effectID = -1;
+									}
+
+									switch (effectID) { //Switch to execute effects found in the variant that was chosen
+									case 0://"xp_share_range"
+										switch (operatorID) {
+										case 0:// "="
+											xpShareRange = effectInt;
+											break;
+										case 1:// "+"
+											xpShareRange += effectInt;
+											break;
+										case 2:// "-"
+											xpShareRange -= effectInt;
+											break;
+										case 3:// "*"
+											xpShareRange *= effectInt;
+											break;
+										case 4:// "/"
+											xpShareRange /= effectInt;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 1://"global_xp_award_percent"
+										switch (operatorID) {
+										case 0:// "="
+											globalXPPercent = effectInt;
+											break;
+										case 1:// "+"
+											globalXPPercent += effectInt;
+											break;
+										case 2:// "-"
+											globalXPPercent -= effectInt;
+											break;
+										case 3:// "*"
+											globalXPPercent *= effectInt;
+											break;
+										case 4:// "/"
+											globalXPPercent /= effectInt;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 2://"overleveling_enabled"
+										if (effectBool == true) {
+											ovEnabled = true;
+										}
+										else if (effectBool == false) {
+											ovEnabled = false;
+										}
+										break;
+									case 3://"global_gold_drop_scale_percent"
+										switch (operatorID) {
+										case 0:// "="
+											globalGoldPercent = effectInt;
+											break;
+										case 1:// "+"
+											globalGoldPercent += effectInt;
+											break;
+										case 2:// "-"
+											globalGoldPercent -= effectInt;
+											break;
+										case 3:// "*"
+											globalGoldPercent *= effectInt;
+											break;
+										case 4:// "/"
+											globalGoldPercent /= effectInt;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 4://"player_speed_max"
+										switch (operatorID) {
+										case 0:// "="
+											playerSpeedMax = effectDouble;
+											break;
+										case 1:// "+"
+											playerSpeedMax += effectDouble;
+											break;
+										case 2:// "-"
+											playerSpeedMax -= effectDouble;
+											break;
+										case 3:// "*"
+											playerSpeedMax *= effectDouble;
+											break;
+										case 4:// "/"
+											playerSpeedMax /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 5://"alchemy_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											alchemyFactor = effectDouble;
+											break;
+										case 1:// "+"
+											alchemyFactor += effectDouble;
+											break;
+										case 2:// "-"
+											alchemyFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											alchemyFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											alchemyFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 6://"appraisal_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											appraisalFactor = effectDouble;
+											break;
+										case 1:// "+"
+											appraisalFactor += effectDouble;
+											break;
+										case 2:// "-"
+											appraisalFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											appraisalFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											appraisalFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 7://"axes_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											axesFactor = effectDouble;
+											break;
+										case 1:// "+"
+											axesFactor += effectDouble;
+											break;
+										case 2:// "-"
+											axesFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											axesFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											axesFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 8://"leadership_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											leadershipFactor = effectDouble;
+											break;
+										case 1:// "+"
+											leadershipFactor += effectDouble;
+											break;
+										case 2:// "-"
+											leadershipFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											leadershipFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											leadershipFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 9://"maces_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											macesFactor = effectDouble;
+											break;
+										case 1:// "+"
+											macesFactor += effectDouble;
+											break;
+										case 2:// "-"
+											macesFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											macesFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											macesFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 10://"magic_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											magicFactor = effectDouble;
+											break;
+										case 1:// "+"
+											magicFactor += effectDouble;
+											break;
+										case 2:// "-"
+											magicFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											magicFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											magicFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 11://"polearms_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											polearmsFactor = effectDouble;
+											break;
+										case 1:// "+"
+											polearmsFactor += effectDouble;
+											break;
+										case 2:// "-"
+											polearmsFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											polearmsFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											polearmsFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 12://"ranged_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											rangedFactor = effectDouble;
+											break;
+										case 1:// "+"
+											rangedFactor += effectDouble;
+											break;
+										case 2:// "-"
+											rangedFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											rangedFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											rangedFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 13://"shields_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											shieldsFactor = effectDouble;
+											break;
+										case 1:// "+"
+											shieldsFactor += effectDouble;
+											break;
+										case 2:// "-"
+											shieldsFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											shieldsFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											shieldsFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 14://"spellcasting_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											spellcastingFactor = effectDouble;
+											break;
+										case 1:// "+"
+											spellcastingFactor += effectDouble;
+											break;
+										case 2:// "-"
+											spellcastingFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											spellcastingFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											spellcastingFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 15://"stealth_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											stealthFactor = effectDouble;
+											break;
+										case 1:// "+"
+											stealthFactor += effectDouble;
+											break;
+										case 2:// "-"
+											stealthFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											stealthFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											stealthFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 16://"swimming_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											swimmingFactor = effectDouble;
+											break;
+										case 1:// "+"
+											swimmingFactor += effectDouble;
+											break;
+										case 2:// "-"
+											swimmingFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											swimmingFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											swimmingFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 17://"swords_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											swordsFactor = effectDouble;
+											break;
+										case 1:// "+"
+											swordsFactor += effectDouble;
+											break;
+										case 2:// "-"
+											swordsFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											swordsFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											swordsFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 18://"tinkering_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											tinkeringFactor = effectDouble;
+											break;
+										case 1:// "+"
+											tinkeringFactor += effectDouble;
+											break;
+										case 2:// "-"
+											tinkeringFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											tinkeringFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											tinkeringFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 19://"trading_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											tradingFactor = effectDouble;
+											break;
+										case 1:// "+"
+											tradingFactor += effectDouble;
+											break;
+										case 2:// "-"
+											tradingFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											tradingFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											tradingFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 20://"unarmed_lvlfactor"
+										switch (operatorID) {
+										case 0:// "="
+											unarmedFactor = effectDouble;
+											break;
+										case 1:// "+"
+											unarmedFactor += effectDouble;
+											break;
+										case 2:// "-"
+											unarmedFactor -= effectDouble;
+											break;
+										case 3:// "*"
+											unarmedFactor *= effectDouble;
+											break;
+										case 4:// "/"
+											unarmedFactor /= effectDouble;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 21://"player_speed_weight_impact_percent"
+										switch (operatorID) {
+										case 0:// "="
+											playerWeightPercent = effectInt;
+											break;
+										case 1:// "+"
+											playerWeightPercent += effectInt;
+											break;
+										case 2:// "-"
+											playerWeightPercent -= effectInt;
+											break;
+										case 3:// "*"
+											playerWeightPercent *= effectInt;
+											break;
+										case 4:// "/"
+											playerWeightPercent /= effectInt;
+											break;
+										default:
+											break;
+										}
+										break;
+									case 22://"player_share_minimap_progress"
+										if (effectBool == true) {
+											minimapShareProgress = true;
+										}
+										else if (effectBool == false) {
+											minimapShareProgress = false;
+										}
+										break;
+									case 23://"disable_hunger"
+										if (effectBool == true) {
+											hungerDisabledOnFloor = true;
+										}
+										else if (effectBool == false) {
+											hungerDisabledOnFloor = false;
+										}
+										break;
+									case 24://"disable_herx_messages"
+										break;
+									case 25://"disable_minimap"
+										if (effectBool == true && !secretlevel)
+										{
+											minimapDisableFloors.first.insert(currentlevel);
+										}
+										else if (effectBool == true && secretlevel)
+										{
+											minimapDisableFloors.second.insert(currentlevel);
+										}
+										else if (effectBool == false && !secretlevel)
+										{
+											minimapDisableFloors.first.erase(currentlevel);
+										}
+										else if (effectBool == false && secretlevel)
+										{
+											minimapDisableFloors.second.erase(currentlevel);
+										}
+										break;
+									default:
+										break;
+									}
+								}
+							}
+						}
+					}
+					return true;
+				}
+			}
+		}
+		printlog("[JSON]: Unknown property '%s'", name.c_str());
+		return false;
+	}
+
 	std::pair<bool,int> verifyAcornsVersion()
 	{
-		double validAcornsVersion = 1.02;
+		double validAcornsVersion = 1.04;
 
 		if (PHYSFS_getRealDir("/data/version.json"))
 		{
@@ -2346,13 +3033,14 @@ public:
 			{
 				return { false, 1 };
 			}
-			return { false,0 };
+			return { true,0 };
 		}
-		return { false,0 };
+		return { true,0 };
 	}
 
 	bool readKeyToGameplayProperty(rapidjson::Value::ConstMemberIterator& itr)
 	{
+		versionChecked = false;
 		std::string name = itr->name.GetString();
 		if (name.compare("version") == 0)
 		{
@@ -2566,7 +3254,6 @@ public:
 			}
 			return true;
 		}
-
 		else if (name.compare("map_generation") == 0 && vanillaGameplay)
 		{
 			for (rapidjson::Value::ConstMemberIterator map_itr = itr->value.MemberBegin(); map_itr != itr->value.MemberEnd(); ++map_itr)
@@ -2662,7 +3349,6 @@ public:
 		}
 		else if (std::string(itr->name.GetString()).compare("disable_minimap") == 0) //New minimap disabler
 		{
-			bool disableMinimap = false;
 			if (itr->value.IsBool())
 			{
 				disableMinimap = itr->value.GetBool();
@@ -2679,6 +3365,8 @@ public:
 				}
 				else
 				{
+
+					disableMinimap = false;
 					printlog("Minimap default values");
 				}
 			}

@@ -116,11 +116,11 @@ void actLadder(Entity* my)
 					}
 					if (playercount == 1)
 					{
-						messagePlayer(i, MESSAGE_INTERACTION, Language::get(506));
+						//messagePlayer(i, MESSAGE_INTERACTION, Language::get(506));
 					}
 					else
 					{
-						messagePlayer(i, MESSAGE_INTERACTION, Language::get(507));
+						//messagePlayer(i, MESSAGE_INTERACTION, Language::get(507));
 					}
 					loadnextlevel = true;
 					Compendium_t::Events_t::previousCurrentLevel = currentlevel;

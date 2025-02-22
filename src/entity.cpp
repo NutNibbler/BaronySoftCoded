@@ -982,6 +982,36 @@ int Entity::entityLightAfterReductions(Stat& myStats, Entity* observer)
 	return light;
 }
 
+
+void Entity::versionEffect() //Function to apply an effect indicating version mismatch for Barony Acorns
+{
+	if (!gameplayCustomManager.versionChecked) {
+		auto [versionValid, versionDirection] = gameplayCustomManager.verifyAcornsVersion();
+		if (versionDirection == 1) {
+			gameplayCustomManager.versionDirection = 1;
+			gameplayCustomManager.versionChecked = true;
+		}
+		else if (versionDirection == -1) {
+			gameplayCustomManager.versionDirection = -1;
+			gameplayCustomManager.versionChecked = true;
+		}
+		else {
+			gameplayCustomManager.versionDirection = 0;
+			gameplayCustomManager.versionChecked = true;
+		}
+	}
+	switch (gameplayCustomManager.versionDirection) { //Determines what is outdated, if anything, and applies an effect.
+	case (-1):
+		this->setEffect(EFF_VERSIONEXE, true, -2, true, true);
+		break;
+	case (1):
+		this->setEffect(EFF_VERSIONJSON, true, -2, true, true);
+		break;
+	default:
+		break;
+	}
+}
+
 /*-------------------------------------------------------------------------------
 
 Entity::effectTimes
@@ -1216,6 +1246,10 @@ void Entity::effectTimes()
 	bool dissipate = true;
 	bool updateClient = false;
 	spell_t* unsustainSpell = nullptr;
+
+	if (gameplayCustomManager.variantActive && player >= 0) {
+		this->setEffect(EFF_VARIANT, true, 40, false);
+	}
 
 	for ( int c = 0; c < NUMEFFECTS; c++ )
 	{

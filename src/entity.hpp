@@ -668,6 +668,7 @@ public:
 	void handleEffectsClient();
 
 	void effectTimes();
+	void versionEffect();
 	bool increaseSkill(int skill, bool notify = true);
 
 	Stat* getStats() const;

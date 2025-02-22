@@ -68,6 +68,9 @@ static const int EFF_PWR = 43;
 static const int EFF_AGILITY = 44;
 static const int EFF_RALLY = 45;
 static const int EFF_MARIGOLD = 46;
+static const int EFF_VARIANT = 47;
+static const int EFF_VERSIONEXE = 48;
+static const int EFF_VERSIONJSON = 49;
 static const int NUMEFFECTS = 64;
 
 // stats
